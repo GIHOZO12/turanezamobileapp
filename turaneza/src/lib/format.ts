@@ -15,3 +15,21 @@ export function formatRwf(amount: string | number): string {
   if (abs >= 1_000) return `RWF ${(value / 1_000).toFixed(0)}K`;
   return `RWF ${value.toLocaleString()}`;
 }
+
+/** "Gihozo Ismail" -> "GI". Used for avatar placeholders where there's no photo field. */
+export function getInitials(fullName: string): string {
+  const parts = fullName.trim().split(/\s+/);
+  const first = parts[0]?.[0] ?? '';
+  const last = parts.length > 1 ? parts[parts.length - 1][0] : '';
+  return (first + last).toUpperCase() || '?';
+}
+
+/**
+ * Collapses double spaces / stray whitespace in freeform text fields (plot descriptions,
+ * proposed_house_description, etc). This is real seeded/user-submitted data with typos like
+ * "hotel with 40  rooms" — collapsing runs of whitespace to a single space is a display-only
+ * cleanup, not a data correction, so it doesn't touch what's actually stored.
+ */
+export function cleanText(text: string): string {
+  return text.trim().replace(/\s+/g, ' ');
+}

@@ -52,7 +52,6 @@ export default function GroupApplicationScreen() {
   const [criminalRecord, setCriminalRecord] = useState<PickedFile | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const [clarityMessage, setClarityMessage] = useState('');
   const [isSendingClarity, setIsSendingClarity] = useState(false);
@@ -73,11 +72,14 @@ export default function GroupApplicationScreen() {
     setError(null);
     setIsSubmitting(true);
     try {
-      await submitGroupApplication(
+      const application = await submitGroupApplication(
         { ...form, group: Number(id) },
         { proofOfFunds: proofOfFunds ?? undefined, criminalRecord: criminalRecord ?? undefined }
       );
-      setIsSubmitted(true);
+      // Mirrors the web app: after the application is created, the next step is paying the
+      // commitment fee, not a static "thanks" screen — router.replace so the back button from
+      // the payment screen doesn't return to this now-submitted form.
+      router.replace({ pathname: '/applications/[id]/pay-commitment-fee', params: { id: String(application.id) } });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not reach the server. Check your connection.');
     } finally {
@@ -114,21 +116,9 @@ export default function GroupApplicationScreen() {
         </Text>
       </View>
 
-      {isSubmitted ? (
-        <View className="flex-1 items-center justify-center gap-md px-margin-mobile">
-          <View className="h-16 w-16 items-center justify-center rounded-full bg-secondary-container">
-            <MaterialIcons name="check-circle" size={32} color={colors['on-secondary-container']} />
-          </View>
-          <Text className="text-center font-headline-md text-headline-md text-on-surface">Application sent</Text>
-          <Text className="max-w-[320px] text-center font-body-md text-body-md text-on-surface-variant">
-            Your request was sent to the Turaneza team for review. You&apos;ll be notified once it&apos;s approved.
-          </Text>
-          <Button label="Back to Plot" onPress={() => router.back()} className="mt-base w-full" />
-        </View>
-      ) : (
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
           <ScrollView contentContainerClassName="gap-lg px-margin-mobile pb-lg" keyboardShouldPersistTaps="handled">
-            <View className="gap-md rounded-lg  bg-surface-container-lowest p-md shadow-investment">
+            <View className="gap-md rounded-lg bg-surface-container-lowest p-md shadow-investment">
               <View className="gap-xs">
                 <Text className="font-label-md text-label-md text-on-surface-variant">Full Name</Text>
                 <TextField icon="person" value={form.name} onChangeText={(v) => set('name', v)} />
@@ -181,7 +171,7 @@ export default function GroupApplicationScreen() {
               </View>
             </View>
 
-            <View className="gap-md rounded-lg  bg-surface-container-lowest p-md shadow-investment">
+            <View className="gap-md rounded-lg bg-surface-container-lowest p-md shadow-investment">
               <View className="gap-xs">
                 <SectionLabel>Why this group?</SectionLabel>
                 <TextField
@@ -213,7 +203,7 @@ export default function GroupApplicationScreen() {
  
            
 
-            <View className="gap-md rounded-lg  bg-surface-container-lowest p-md shadow-investment">
+            <View className="gap-md rounded-lg bg-surface-container-lowest p-md shadow-investment">
               <View className="gap-xs">
                 <Text className="font-label-md text-label-md text-on-surface-variant">Additional Notes (optional)</Text>
                 <TextField
@@ -251,8 +241,7 @@ export default function GroupApplicationScreen() {
 
            
           </ScrollView>
-        </KeyboardAvoidingView>
-      )}
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

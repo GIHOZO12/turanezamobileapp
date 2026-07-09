@@ -4,11 +4,14 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { fetchMyApplications, type GroupApplication } from '@/api/applications';
 import { fetchGroupDocuments, fetchInvestGroup, type GroupDocument, type InvestGroup } from '@/api/groups';
 import { ApiError } from '@/api/client';
 import { Button } from '@/components/ui/button';
 import colors from '@/constants/colors';
-import { formatRwf } from '@/lib/format';
+import { useAuth } from '@/contexts/auth-context';
+import { cleanText, formatRwf } from '@/lib/format';
+import { computeMembershipStatus, indexApplicationsByGroup } from '@/lib/membership';
 
 const DOCUMENT_ICONS: Record<GroupDocument['document_type'], keyof typeof MaterialIcons.glyphMap> = {
   architectural: 'architecture',
@@ -20,8 +23,10 @@ const DOCUMENT_ICONS: Record<GroupDocument['document_type'], keyof typeof Materi
 export default function GroupDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { user } = useAuth();
   const [group, setGroup] = useState<InvestGroup | null>(null);
   const [documents, setDocuments] = useState<GroupDocument[]>([]);
+  const [applications, setApplications] = useState<GroupApplication[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,7 +43,15 @@ export default function GroupDetailScreen() {
     fetchGroupDocuments(id)
       .then((data) => setDocuments(data.results))
       .catch(() => setDocuments([]));
+
+    // Same membership check as the plot list cards — this was missing here entirely before,
+    // which is why "Join Group" kept showing up even for the group's own creator/members.
+    fetchMyApplications()
+      .then((data) => setApplications(data.results))
+      .catch(() => {});
   }, [id]);
+
+  const membershipStatus = group ? computeMembershipStatus(group, user?.id, indexApplicationsByGroup(applications)) : 'none';
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
@@ -59,9 +72,12 @@ export default function GroupDetailScreen() {
           {error ?? 'Plot not found.'}
         </Text>
       ) : (
-        <ScrollView contentContainerClassName="gap-md px-margin-mobile pb-lg" showsVerticalScrollIndicator={false}>
+        <ScrollView
+          className="flex-1"
+          contentContainerClassName="gap-xl px-margin-mobile py-md pb-lg"
+          showsVerticalScrollIndicator={false}>
           {/* Group header */}
-          <View className="gap-md rounded-lg border border-surface- bg-surface-container-lowest p-md shadow-investment">
+          <View className="gap-md rounded-lg bg-surface-container-lowest p-md shadow-investment">
             <View className="flex-row flex-wrap items-center gap-2">
               <View className="rounded-full bg-secondary-container px-3 py-1">
                 <Text className="font-label-sm uppercase tracking-wider text-label-sm text-on-secondary-container">
@@ -77,12 +93,41 @@ export default function GroupDetailScreen() {
             </View>
             <Text className="font-headline-lg text-headline-lg text-primary">{group.name}</Text>
             {group.description ? (
-              <Text className="font-body-md text-body-md text-on-surface-variant">{group.description}</Text>
+              <Text className="font-body-md text-body-md text-on-surface-variant">{cleanText(group.description)}</Text>
             ) : null}
           </View>
 
-          {/* Total Group Fund */}
-          <View className="gap-1 rounded-lg bg-primary-container p-6">
+          {/* Plot Details — plot_size_sqm/land_registration_status were shown on the list card
+              but missing here, and proposed_house_description (what's planned to be built on
+              this plot) wasn't displayed anywhere in the app at all until now. */}
+          <View className="gap-md rounded-lg bg-surface-container-lowest p-md shadow-investment">
+            <Text className="font-headline-md text-headline-md text-on-surface">Plot Details</Text>
+            <View className="flex-row gap-md">
+              <View className="flex-1 gap-xs">
+                <Text className="font-label-sm text-label-sm text-outline">Plot Size</Text>
+                <Text className="font-label-md text-label-md text-on-surface">
+                  {group.plot_size_sqm ? `${Number(group.plot_size_sqm).toLocaleString()} m²` : 'Not set'}
+                </Text>
+              </View>
+              <View className="flex-1 gap-xs">
+                <Text className="font-label-sm text-label-sm text-outline">Land Status</Text>
+                <Text className="font-label-md text-label-md text-on-surface">
+                  {group.land_registration_status_label || 'Not set'}
+                </Text>
+              </View>
+            </View>
+            {group.proposed_house_description ? (
+              <View className="gap-xs">
+                <Text className="font-label-sm text-label-sm text-outline">Proposed Development</Text>
+                <Text className="font-body-md text-body-md text-on-surface-variant">
+                  {cleanText(group.proposed_house_description)}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+
+        
+          <View className="gap-1 rounded-lg bg-primary-container p-md shadow-investment">
             <Text className="font-label-md text-label-md text-on-primary-container/90">Total Group Fund</Text>
             <Text
               className="font-display-lg text-display-lg text-on-primary-container"
@@ -96,77 +141,86 @@ export default function GroupDetailScreen() {
                 style={{ width: `${group.funding_progress.percent}%` }}
               />
             </View>
-            {/* No adjustsFontSizeToFit here: formatRwf already keeps this short, and RN's Android
-                shrink-to-fit has a known quirk with multi-part interpolated Text children (this
-                one mixes a raw number, a literal string, and a function call) — it can clip the
-                first character rather than shrink cleanly. Simpler to just not need it. */}
+           
             <Text className="mt-1 font-label-sm text-label-sm text-on-primary-container">
               {group.funding_progress.percent}% of {formatRwf(group.funding_progress.required)} Target Goal
             </Text>
           </View>
 
-          {/* Opens the same application form as the plot list cards */}
-          <Button
-            label="Join Group"
-            onPress={() => router.push({ pathname: '/group/[id]/apply', params: { id } })}
-          />
+          {/* Same membership logic as the plot list cards: showing "Join Group" to someone
+              who's already the creator or an approved member made no sense — this was hardcoded
+              unconditionally before, which is exactly why it kept appearing regardless of status. */}
+          <View className="gap-sm rounded-lg bg-surface-container-lowest p-md shadow-investment">
+            {membershipStatus === 'member' ? (
+              <View className="flex-row items-center justify-center gap-2 self-center rounded-full bg-secondary-container px-4 py-2">
+                <MaterialIcons name="check-circle" size={16} color={colors['on-secondary-container']} />
+                <Text className="font-label-sm text-label-sm text-on-secondary-container">You&apos;re a member of this group</Text>
+              </View>
+            ) : (
+              <>
+                <Text className="text-center font-label-md text-label-md text-on-surface-variant">
+                  {membershipStatus === 'pending'
+                    ? 'Your application is being reviewed by our team.'
+                    : 'Ready to co-invest in this plot? Send a request to join this group.'}
+                </Text>
+                <Button
+                  label={membershipStatus === 'pending' ? 'Application Pending' : 'Request to Join'}
+                  onPress={() => router.push({ pathname: '/group/[id]/apply', params: { id } })}
+                  disabled={membershipStatus === 'pending'}
+                />
+              </>
+            )}
+          </View>
 
-          {/* Make a contribution — Pay Commitment Fee flow isn't built yet, no-op for now.
-              Distinct from "Join Group" above: this is for members topping up an existing
-              commitment, not the initial application. */}
           <Pressable
             onPress={() => {}}
-            className="flex-row items-center justify-center gap-2 rounded-lg border-2 border-dashed border-outline-variant py-4 active:border-primary">
-            <MaterialIcons name="add-circle" size={20} color={colors.outline} />
-            <Text className="font-label-md text-label-md text-outline">Make a Contribution</Text>
-          </Pressable>
-
-          {/* Group Discussion — Group Chat screen isn't built yet, no-op for now */}
-          <Pressable
-            onPress={() => {}}
-            className="flex-row items-center justify-between rounded-lg bg-surface-container-highest p-md shadow-investment active:opacity-90">
-            <View className="flex-row items-center gap-4">
-              <View className="h-14 w-14 items-center justify-center rounded-full bg-primary">
-                <MaterialIcons name="chat" size={26} color={colors['on-primary']} />
+            className="flex-row items-center justify-between rounded-lg bg-surface-container-highest p-sm shadow-investment active:opacity-90">
+            <View className="flex-row items-center gap-3">
+              <View className="h-11 w-11 items-center justify-center rounded-full bg-primary">
+                <MaterialIcons name="chat" size={20} color={colors['on-primary']} />
               </View>
               <View>
-                <Text className="font-headline-md text-headline-md text-on-surface">Group Discussion</Text>
-                <Text className="font-label-md text-label-md text-on-surface-variant">
-                  Chat with the {group.members_count} member{group.members_count === 1 ? '' : 's'} of this group
+                <Text className="font-label-md text-label-md text-on-surface">Group Discussion</Text>
+                <Text className="font-label-sm text-label-sm text-on-surface-variant">
+                  Chat with {group.members_count} member{group.members_count === 1 ? '' : 's'}
                 </Text>
               </View>
             </View>
-            <MaterialIcons name="arrow-forward" size={20} color={colors.primary} />
+            <MaterialIcons name="arrow-forward" size={18} color={colors.primary} />
           </Pressable>
 
           {/* Group Insights — real fields only; the mockup's "Days Left"/"Yield Est." aren't
               modeled on InvestGroup, so this shows what's actually available instead of faking them. */}
-          <View className="gap-sm rounded-lg border border-primary/10 bg-primary/5 p-md">
-            <Text className="font-label-md uppercase tracking-tight text-label-md text-primary">Group Insights</Text>
-            <View className="flex-row flex-wrap gap-y-md">
-              <View className="w-1/2 gap-xs">
-                <Text className="text-[12px] text-on-surface-variant">Members</Text>
-                <Text className="font-headline-md text-headline-md text-on-surface">
-                  {group.members_count} / {group.max_members}
-                </Text>
+          <View className="gap-md rounded-lg bg-primary/5 p-md">
+            <Text className="font-label-sm text-label-sm text-primary">Group Insights</Text>
+            <View className="gap-md">
+              <View className="flex-row gap-md">
+                <View className="flex-1 gap-xs">
+                  <Text className="text-[12px] text-on-surface-variant">Members</Text>
+                  <Text className="font-headline-md text-headline-md text-on-surface">
+                    {group.members_count} / {group.max_members}
+                  </Text>
+                </View>
+                <View className="flex-1 gap-xs">
+                  <Text className="text-[12px] text-on-surface-variant">Avg. Stake</Text>
+                  <Text className="font-headline-md text-headline-md text-on-surface">{formatRwf(group.member_unit_share)}</Text>
+                </View>
               </View>
-              <View className="w-1/2 gap-xs">
-                <Text className="text-[12px] text-on-surface-variant">Avg. Stake</Text>
-                <Text className="font-headline-md text-headline-md text-on-surface">{formatRwf(group.member_unit_share)}</Text>
-              </View>
-              <View className="w-1/2 gap-xs">
-                <Text className="text-[12px] text-on-surface-variant">Min Investment</Text>
-                <Text className="font-headline-md text-headline-md text-on-surface">{formatRwf(group.min_investment)}</Text>
-              </View>
-              <View className="w-1/2 gap-xs">
-                <Text className="text-[12px] text-on-surface-variant">Total Units</Text>
-                <Text className="font-headline-md text-headline-md text-secondary">{group.total_units}</Text>
+              <View className="flex-row gap-md">
+                <View className="flex-1 gap-xs">
+                  <Text className="text-[12px] text-on-surface-variant">Min Investment</Text>
+                  <Text className="font-headline-md text-headline-md text-on-surface">{formatRwf(group.min_investment)}</Text>
+                </View>
+                <View className="flex-1 gap-xs">
+                  <Text className="text-[12px] text-on-surface-variant">Total Units</Text>
+                  <Text className="font-headline-md text-headline-md text-secondary">{group.total_units}</Text>
+                </View>
               </View>
             </View>
           </View>
 
           {/* Documents */}
-          <View className="gap-sm rounded-lg bg-surface-container-lowest p-md shadow-investment">
+          <View className="gap-md rounded-lg bg-surface-container-lowest p-md shadow-investment">
             <Text className="font-headline-md text-headline-md text-on-surface">Documents</Text>
             {documents.length === 0 ? (
               <Text className="font-body-md text-body-md text-on-surface-variant">
@@ -174,9 +228,10 @@ export default function GroupDetailScreen() {
               </Text>
             ) : (
               documents.map((doc) => (
+                // A subtle background tint separates each row instead of a border line.
                 <View
                   key={doc.id}
-                  className="flex-row items-center justify-between rounded-lg border border-surface-container-high p-3">
+                  className="flex-row items-center justify-between rounded-lg bg-surface-container-low p-3">
                   <View className="flex-1 flex-row items-center gap-3 pr-2">
                     <View className="h-10 w-10 items-center justify-center rounded bg-primary/10">
                       <MaterialIcons name={DOCUMENT_ICONS[doc.document_type]} size={20} color={colors.primary} />

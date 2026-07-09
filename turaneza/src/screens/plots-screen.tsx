@@ -83,8 +83,11 @@ export default function PlotsScreen() {
           </View>
         </View>
 
-        {/* Submit a Plot flow isn't built yet — no-op for now */}
-        <Button label="Have your own plot? Submit it" onPress={() => {}} className="self-start px-6" />
+        <Button
+          label="Have your own plot? Submit it"
+          onPress={() => router.push('/submit-plot')}
+          className="self-start px-6"
+        />
 
         <View className="h-14 flex-row items-center gap-3 rounded-full border border-outline-variant bg-surface-container-lowest px-4 shadow-sm">
           <MaterialIcons name="search" size={20} color={search.length > 0 ? colors.primary : colors.outline} />

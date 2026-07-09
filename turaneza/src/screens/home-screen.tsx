@@ -71,15 +71,18 @@ export default function HomeScreen() {
             Join communal investment groups to acquire prime real estate and plots across Rwanda. Secure your wealth
             through transparent, institutional-grade land ownership.
           </Text>
-          {/* To this: */}
-<View className="flex-row flex-wrap gap-md py-sm pt-xs">
-  <Button label="Browse All Plots" onPress={() => router.push('/plots')} className="grow px-8 " />
-  {/* Submit a Plot flow isn't built yet — no-op for now */}
-  <Button label="Submit a Plot" variant="secondary" onPress={() => {}} className="grow px-8" />
-</View>
+          <View className="flex-row gap-md py-sm pt-xs">
+            <Button label="Browse All Plots" onPress={() => router.push('/plots')} className="flex-1" />
+            <Button
+              label="Submit a Plot"
+              variant="secondary"
+              onPress={() => router.push('/submit-plot')}
+              className="flex-1"
+            />
+          </View>
 
-          <View className="mt-sm flex-row gap-md">
-            <View className="flex-1 gap-xs rounded-lg bg-surface-container-lowest p-md shadow-investment">
+          <View className="mt-md flex-row gap-md">
+            <View className="flex-1 gap-sm rounded-lg bg-surface-container-lowest p-md shadow-investment">
               <View className="h-9 w-9 items-center justify-center rounded-full bg-primary-fixed">
                 <MaterialIcons name="account-balance-wallet" size={18} color={colors.primary} />
               </View>
@@ -87,7 +90,7 @@ export default function HomeScreen() {
               <Text className="font-headline-md text-headline-md text-on-surface">RWF 4.2B+</Text>
               <Text className="font-label-sm text-label-sm text-secondary">↑ 12% this month</Text>
             </View>
-            <View className="flex-1 gap-xs rounded-lg  bg-surface-container-lowest p-md shadow-investment">
+            <View className="flex-1 gap-sm rounded-lg bg-surface-container-lowest p-md shadow-investment">
               <View className="h-9 w-9 items-center justify-center rounded-full bg-primary-fixed">
                 <MaterialIcons name="groups" size={18} color={colors.primary} />
               </View>
@@ -137,18 +140,17 @@ export default function HomeScreen() {
           )}
         </View>
 
-        {/* Trust banner */}
-        <View className="gap-sm rounded-lg bg-primary  p-sm">
-          <Text className="font-headline-lg text-headline-lg text-on-primary">Why Choose Turaneza?</Text>
-          <Text className="mb-sm font-body-md text-body-md text-primary-fixed">
-            We leverage blockchain technology for immutable land title tracking and provide institutional legal
-            frameworks for every co-investment group
+        <View className=" items-center gap-md rounded-lg bg-primary p-lg bottom-0">
+          <Text className="text-center font-headline-lg text-headline-lg text-on-primary">Why Choose Turaneza?</Text>
+          <Text className=" flex-1 text-center font-body-md text-body-md text-primary-fixed">
+            
+            we are your trusted partner for secure, transparent, and profitable land co-investment in Rwanda.
           </Text>
-          <View className="flex-row flex-wrap gap-md">
+          <View className="w-full flex-row gap-md">
             {TRUST_ITEMS.map((item) => (
-              <View key={item.label} className="flex-row items-center gap-2">
-                <MaterialIcons name={item.icon} size={18} color={colors['secondary-fixed']} />
-                <Text className="font-label-md text-label-md text-on-primary">{item.label}</Text>
+              <View key={item.label} className="flex-1 items-center gap-2 rounded-lg bg-on-primary/10 px-2 py-3">
+                <MaterialIcons name={item.icon} size={20} color={colors['secondary-fixed']} />
+                <Text className="text-center font-label-md text-label-md text-on-primary">{item.label}</Text>
               </View>
             ))}
           </View>

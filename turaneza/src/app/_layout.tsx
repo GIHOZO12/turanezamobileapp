@@ -38,6 +38,10 @@ function RootNavigator() {
             outside both, rather than being duplicated inside each tab's own stack. */}
         <Stack.Screen name="group/[id]" />
         <Stack.Screen name="group/[id]/apply" />
+        <Stack.Screen name="applications/[id]/pay-commitment-fee" />
+        {/* Reachable from Home and the Plots tab, same reasoning as group/[id] above */}
+        <Stack.Screen name="submit-plot" />
+        <Stack.Screen name="account-info" />
       </Stack.Protected>
     </Stack>
   );

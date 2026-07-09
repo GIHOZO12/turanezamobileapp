@@ -12,7 +12,7 @@ type AuthContextValue = {
   login: (email: string, password: string) => Promise<void>;
   /** Call after verify-email succeeds — the backend has already created a session by then. */
   completeSession: () => Promise<void>;
-  signOut: () => void;
+  signOut: () => Promise<void>;
 };
 
 /**
@@ -22,9 +22,11 @@ type AuthContextValue = {
  *    so auth genuinely survives app restarts without us reading anything from storage for this part.
  *  - The JWT access token (obtained via login() below, stored through api/token-store.ts) is what
  *    mutations ride on, since Django's CSRF protection blocks session-cookie-authenticated POSTs
- *    and RN can't satisfy it (see api/client.ts's comment for why). It's fetched best-effort: if
- *    the backend's /token/ endpoint doesn't exist yet, login still succeeds on the session alone —
- *    browsing works, mutations won't until that endpoint is added.
+ *    and RN can't satisfy it (see api/client.ts's comment for why). POST /api/v1/users/token/ now
+ *    exists on the backend and issues real JWTs, verified live against IsAuthenticated views
+ *    (rest_framework_simplejwt.authentication.JWTAuthentication is in DEFAULT_AUTHENTICATION_CLASSES
+ *    globally) — mutations (plot/application/commitment-fee submission) work end-to-end now. Still
+ *    fetched best-effort (try/catch) purely as defense in depth, not because it's expected to fail.
  */
 const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -67,8 +69,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
           const tokens = await authApi.fetchMobileToken({ email, password });
           await setTokens(tokens.access, tokens.refresh);
         } catch {
-          // /token/ isn't on the backend yet (see api/auth.ts) — sign-in still succeeds on the
-          // session cookie alone, mutations just won't work until that endpoint exists.
+          // Defense in depth only — /token/ is live on the backend now. If this ever fails
+          // (network blip, backend down), sign-in still succeeds on the session cookie alone;
+          // mutations just won't work until a token is obtained.
         }
       },
       completeSession: async () => {
@@ -79,12 +82,20 @@ export function AuthProvider({ children }: PropsWithChildren) {
         setUser(me);
         setIsSignedIn(true);
       },
-      signOut: () => {
-        // Local-only for now: clears app state and the stored JWT, but leaves the sessionid
-        // cookie alive server-side. Now that mutations go through the JWT (not the session), the
-        // real POST /logout/ could be called here without hitting CSRF — deferred until Profile
-        // Settings actually needs a sign-out button.
-        clearTokens();
+      signOut: async () => {
+        // Call the real endpoint *before* clearing the JWT — logout() needs the Authorization
+        // header still attached so it authenticates via JWT (bypassing session/CSRF) and actually
+        // flushes the session server-side. Best-effort: a network hiccup here shouldn't trap the
+        // user signed in locally, so local state is cleared regardless of outcome. Skipping this
+        // call entirely (clearing only local state) leaves the old sessionid cookie alive
+        // server-side — the next login then resolves an already-authenticated user from that
+        // stale cookie and gets CSRF-blocked before the login logic even runs.
+        try {
+          await authApi.logout();
+        } catch {
+          // Ignored — see above.
+        }
+        await clearTokens();
         setUser(null);
         setIsSignedIn(false);
       },

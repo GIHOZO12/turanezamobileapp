@@ -73,7 +73,7 @@ export default function ForgotPasswordScreen() {
                 </Text>
               </View>
 
-              <View className="gap-md rounded-lg border border-outline-variant/30 bg-surface-container-lowest p-md shadow-investment">
+              <View className="gap-md rounded-lg bg-surface-container-lowest p-md shadow-investment">
                 <View className="gap-xs">
                   <Text className="font-label-md text-label-md text-on-surface-variant">Email Address</Text>
                   <TextField
