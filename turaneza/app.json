@@ -4,7 +4,7 @@
     "slug": "turaneza",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/turanezalogo.png",
     "scheme": "turaneza",
     "userInterfaceStyle": "automatic",
     "ios": {
@@ -39,6 +39,19 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "436e97a3-5430-4934-9e62-a63188f0bed1"
+      }
+    },
+    "owner": "ngewe",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/436e97a3-5430-4934-9e62-a63188f0bed1"
     }
   }
 }

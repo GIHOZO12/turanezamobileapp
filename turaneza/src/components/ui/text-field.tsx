@@ -17,10 +17,10 @@ export type TextFieldProps = TextInputProps & {
  * since RN has no `:focus` pseudo-class (NativeWind's `focus:` variant works for it, but the icon
  * tint is a `color` prop, not a style, so that half still needs the JS state).
  *
- * `multiline` gets meaningfully different container styling: a pill-shaped, fixed 52px-tall row
- * reads fine for a single line of text but looks wrong (and clips content) for a 3-line text area
- * — that variant uses a regular rounded rectangle that grows with content, with the icon aligned
- * to the top instead of vertically centered.
+ * A plain bordered rectangle — label rendered above by the caller, icon inline — rather than a
+ * pill shape, matching the reference product's input style. `multiline` only changes alignment
+ * (icon pinned to the top instead of vertically centered) since both variants already share the
+ * same grow-with-content rectangle container.
  */
 export function TextField({ icon, isPassword, className, multiline, ...inputProps }: TextFieldProps) {
   const [isFocused, setIsFocused] = useState(false);
@@ -29,8 +29,8 @@ export function TextField({ icon, isPassword, className, multiline, ...inputProp
   return (
     <View
       className={cn(
-        'flex-row gap-base border bg-surface-container-low px-md',
-        multiline ? 'items-start rounded-lg py-3' : 'h-[52px] items-center rounded-full',
+        'flex-row gap-base rounded-lg border bg-surface-container-low px-md py-3',
+        multiline ? 'items-start' : 'items-center',
         isFocused ? 'border-2 border-primary' : 'border-outline-variant'
       )}>
       <MaterialIcons

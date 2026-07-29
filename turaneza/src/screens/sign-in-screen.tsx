@@ -93,8 +93,6 @@ export default function SignInScreen() {
               <View className="h-[1px] flex-1 bg-outline-variant" />
             </View>
 
-            {/* The mockup uses Google's multicolor "G" logo image — a single-color icon font
-                can't reproduce that, so this is text-only for now; swap in a logo asset later. */}
             <Button label="Google" variant="secondary" onPress={() => {}} />
 
             <Pressable onPress={() => router.push('/sign-up')} className="flex-row flex-wrap justify-center">

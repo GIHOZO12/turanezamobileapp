@@ -29,8 +29,7 @@ export default function PlotsScreen() {
     setError(null);
     return Promise.all([
       fetchInvestGroups().then((data) => setGroups(data.results)),
-      // Best-effort: knowing "already applied" is a nice-to-have, not worth failing the whole
-      // screen over if this particular call has trouble.
+  
       fetchMyApplications()
         .then((data) => setApplications(data.results))
         .catch(() => {}),
@@ -49,8 +48,7 @@ export default function PlotsScreen() {
     load().finally(() => setIsRefreshing(false));
   }
 
-  // No server-side search on this endpoint (see api/groups.ts) — filters client-side over
-  // whatever page is already in memory.
+
   const visibleGroups = useMemo(() => {
     const query = search.trim().toLowerCase();
     if (!query) return groups;
@@ -84,9 +82,9 @@ export default function PlotsScreen() {
         </View>
 
         <Button
-          label="Have your own plot? Submit it"
+          label="Register your plot"
           onPress={() => router.push('/submit-plot')}
-          className="self-start px-6"
+          className=" flex-1 "
         />
 
         <View className="h-14 flex-row items-center gap-3 rounded-full border border-outline-variant bg-surface-container-lowest px-4 shadow-sm">

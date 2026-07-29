@@ -12,12 +12,6 @@ import { FilePickerField } from '@/components/ui/file-picker-field';
 import { TextField } from '@/components/ui/text-field';
 import colors from '@/constants/colors';
 
-const STEPS = [
-  'Submit plot details and ownership documents.',
-  'Legal and site verification by our regional experts.',
-  'Plot listing goes live for community co-investment.',
-];
-
 export default function SubmitPlotScreen() {
   const router = useRouter();
   const [description, setDescription] = useState('');
@@ -25,6 +19,7 @@ export default function SubmitPlotScreen() {
   const [landTitleNumber, setLandTitleNumber] = useState('');
   const [location, setLocation] = useState('');
   const [ownershipProof, setOwnershipProof] = useState<PickedFile | null>(null);
+  const [plotImage, setPlotImage] = useState<PickedFile | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -44,7 +39,8 @@ export default function SubmitPlotScreen() {
           plot_size_sqm: Number(plotSize),
           land_title_number: landTitleNumber.trim(),
         },
-        ownershipProof
+        ownershipProof,
+        plotImage ?? undefined
       );
       setIsSubmitted(true);
     } catch (err) {
@@ -82,7 +78,7 @@ export default function SubmitPlotScreen() {
         </View>
       ) : (
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
-          <ScrollView contentContainerClassName="gap-lg px-margin-mobile pb-lg" keyboardShouldPersistTaps="handled">
+          <ScrollView contentContainerClassName="gap-xl px-margin-mobile pb-lg" keyboardShouldPersistTaps="handled">
             <Text className="font-body-md text-body-md text-on-surface-variant">
               Provide the details below to list your land for institutional co-investment. Our team will verify the
               ownership and zoning status.
@@ -90,7 +86,7 @@ export default function SubmitPlotScreen() {
 
             <View className="gap-md rounded-lg bg-surface-container-lowest p-md shadow-investment">
               <View className="gap-xs">
-                <Text className="font-label-md text-label-md text-on-surface-variant">Plot Description (optional)</Text>
+                <Text className="font-label-md text-label-md text-on-surface-variant">Plot Description</Text>
                 <TextField
                   icon="description"
                   multiline
@@ -135,13 +131,23 @@ export default function SubmitPlotScreen() {
 
             <View className="gap-md rounded-lg bg-surface-container-lowest p-md shadow-investment">
               <View className="gap-xs">
-                <Text className="font-label-md text-label-md text-on-surface-variant">
-                  Ownership Proof — Upload Land Title (UPI Certificate)
-                </Text>
+                <Text className="font-label-md text-label-md text-on-surface-variant">Ownership Proof</Text>
                 <FilePickerField
                   value={ownershipProof}
                   onChange={setOwnershipProof}
+                  uploadLabel="Upload Land Title (UPI Certificate)"
                   helperText="PDF, JPG, or PNG (Max 10MB)."
+                />
+              </View>
+
+              <View className="gap-xs">
+                <Text className="font-label-md text-label-md text-on-surface-variant">Plot Photo (optional)</Text>
+                <FilePickerField
+                  value={plotImage}
+                  onChange={setPlotImage}
+                  accept={['image/*']}
+                  uploadLabel="Upload Plot Photo"
+                  helperText="A photo of the plot itself, shown to reviewers and investors."
                 />
               </View>
             </View>
@@ -152,16 +158,15 @@ export default function SubmitPlotScreen() {
               </Text>
             )}
 
-            <View className="flex-row gap-md">
-              {/* <Button label="Cancel" variant="secondary" onPress={() => router.back()} className="flex-1" /> */}
-              <Button
-                label="Submit plot to register"
-                onPress={handleSubmit}
-                loading={isSubmitting}
-                disabled={!canSubmit}
-                className="flex-1 mt-md"
-              />
-            </View>
+            <Button
+              label="Submit plot to register"
+              onPress={handleSubmit}
+              loading={isSubmitting}
+              disabled={!canSubmit}
+              className="w-full bottom-md "
+            />
+
+            
           </ScrollView>
         </KeyboardAvoidingView>
       )}

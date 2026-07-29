@@ -1,29 +1,35 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { LayoutChangeEvent, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { fetchNotifications } from '@/api/notifications';
 import colors from '@/constants/colors';
+import { useDrawer } from '@/contexts/drawer-context';
 import { cn } from '@/lib/cn';
 
 export type TopAppBarProps = {
   onMenuPress?: () => void;
   onNotificationPress?: () => void;
   hasNotification?: boolean;
-  /** Home's header sits over a hero image/gradient so it's translucent; other screens are opaque. */
+ 
   translucent?: boolean;
   onHeightChange?: (height: number) => void;
 };
 
-/**
- * Floats (position: absolute) over whatever scrolls beneath it — same on every screen that uses
- * it — which is exactly why this got extracted the moment a second screen needed it: the header's
- * real height has to be measured via onLayout and fed back to the caller's ScrollView padding
- * (see home-screen.tsx), and hand-copying that wiring into every screen is how it drifts out of
- * sync and overlaps content, which is what happened the first time around.
- */
+
 export function TopAppBar({ onMenuPress, onNotificationPress, hasNotification, translucent, onHeightChange }: TopAppBarProps) {
-  const [showBadge, setShowBadge] = useState(hasNotification ?? true);
+  const [showBadge, setShowBadge] = useState(hasNotification ?? false);
+  const drawer = useDrawer();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (hasNotification != null) return;
+    fetchNotifications()
+      .then((data) => setShowBadge(data.results.some((n) => !n.is_read)))
+      .catch(() => {});
+  }, [hasNotification]);
 
   function handleLayout(event: LayoutChangeEvent) {
     onHeightChange?.(event.nativeEvent.layout.height);
@@ -36,7 +42,10 @@ export function TopAppBar({ onMenuPress, onNotificationPress, hasNotification, t
       className={cn('absolute left-0 right-0 top-0 z-10', translucent ? 'bg-background/90' : 'bg-background')}>
       <View className="flex-row items-center justify-between px-margin-mobile py-4">
         <View className="flex-row items-center gap-4">
-          <Pressable hitSlop={8} onPress={onMenuPress} className="rounded-full p-2 active:bg-surface-container-high">
+          <Pressable
+            hitSlop={8}
+            onPress={onMenuPress ?? drawer.open}
+            className="rounded-full p-2 active:bg-surface-container-high">
             <MaterialIcons name="menu" size={24} color={colors.primary} />
           </Pressable>
           <Text className="font-headline-md text-headline-md text-primary">TURANEZA</Text>
@@ -45,7 +54,11 @@ export function TopAppBar({ onMenuPress, onNotificationPress, hasNotification, t
           hitSlop={8}
           onPress={() => {
             setShowBadge(false);
-            onNotificationPress?.();
+            if (onNotificationPress) {
+              onNotificationPress();
+            } else {
+              router.push('/notifications');
+            }
           }}
           className="rounded-full p-2 active:bg-surface-container-high">
           <MaterialIcons name="notifications" size={24} color={colors.primary} />

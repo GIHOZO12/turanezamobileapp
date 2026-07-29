@@ -14,7 +14,9 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useColorScheme } from 'react-native';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
+import { SideDrawer } from '@/components/ui/side-drawer';
 import { AuthProvider, useAuth } from '@/contexts/auth-context';
+import { DrawerProvider } from '@/contexts/drawer-context';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -38,10 +40,14 @@ function RootNavigator() {
             outside both, rather than being duplicated inside each tab's own stack. */}
         <Stack.Screen name="group/[id]" />
         <Stack.Screen name="group/[id]/apply" />
+        <Stack.Screen name="group/[id]/members" />
+        <Stack.Screen name="project/[id]" />
+        <Stack.Screen name="chat/[id]" />
         <Stack.Screen name="applications/[id]/pay-commitment-fee" />
         {/* Reachable from Home and the Plots tab, same reasoning as group/[id] above */}
         <Stack.Screen name="submit-plot" />
         <Stack.Screen name="account-info" />
+        <Stack.Screen name="notifications" />
       </Stack.Protected>
     </Stack>
   );
@@ -67,7 +73,10 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <AnimatedSplashOverlay />
       <AuthProvider>
-        <RootNavigator />
+        <DrawerProvider>
+          <RootNavigator />
+          <SideDrawer />
+        </DrawerProvider>
       </AuthProvider>
     </ThemeProvider>
   );

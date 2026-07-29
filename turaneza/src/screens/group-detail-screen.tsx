@@ -7,7 +7,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { fetchMyApplications, type GroupApplication } from '@/api/applications';
 import { fetchGroupDocuments, fetchInvestGroup, type GroupDocument, type InvestGroup } from '@/api/groups';
 import { ApiError } from '@/api/client';
+import { fetchProjects, type Project } from '@/api/projects';
 import { Button } from '@/components/ui/button';
+import { ProjectCard } from '@/components/ui/project-card';
 import colors from '@/constants/colors';
 import { useAuth } from '@/contexts/auth-context';
 import { cleanText, formatRwf } from '@/lib/format';
@@ -27,6 +29,7 @@ export default function GroupDetailScreen() {
   const [group, setGroup] = useState<InvestGroup | null>(null);
   const [documents, setDocuments] = useState<GroupDocument[]>([]);
   const [applications, setApplications] = useState<GroupApplication[]>([]);
+  const [groupProjects, setGroupProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,6 +52,13 @@ export default function GroupDetailScreen() {
     fetchMyApplications()
       .then((data) => setApplications(data.results))
       .catch(() => {});
+
+    // No server-side ?group= filter exists on /projects/projects/ (confirmed against the
+    // backend source), so this fetches the list and filters client-side. Best-effort, same
+    // reasoning as documents — a project fetch failure shouldn't block the rest of the page.
+    fetchProjects()
+      .then((data) => setGroupProjects(data.results.filter((p) => p.group === Number(id))))
+      .catch(() => setGroupProjects([]));
   }, [id]);
 
   const membershipStatus = group ? computeMembershipStatus(group, user?.id, indexApplicationsByGroup(applications)) : 'none';
@@ -91,15 +101,13 @@ export default function GroupDetailScreen() {
                 </View>
               ) : null}
             </View>
-            <Text className="font-headline-lg text-headline-lg text-primary">{group.name}</Text>
+            <Text className="font-headline-editorial text-headline-editorial text-primary">{group.name}</Text>
             {group.description ? (
               <Text className="font-body-md text-body-md text-on-surface-variant">{cleanText(group.description)}</Text>
             ) : null}
           </View>
 
-          {/* Plot Details — plot_size_sqm/land_registration_status were shown on the list card
-              but missing here, and proposed_house_description (what's planned to be built on
-              this plot) wasn't displayed anywhere in the app at all until now. */}
+
           <View className="gap-md rounded-lg bg-surface-container-lowest p-md shadow-investment">
             <Text className="font-headline-md text-headline-md text-on-surface">Plot Details</Text>
             <View className="flex-row gap-md">
@@ -126,8 +134,11 @@ export default function GroupDetailScreen() {
             ) : null}
           </View>
 
-        
-          <View className="gap-1 rounded-lg bg-primary-container p-md shadow-investment">
+        <View className="gap-md">
+
+
+
+          <View className="flex-1 items-center gap-sm rounded-lg bg-primary-container p-md shadow-investment">
             <Text className="font-label-md text-label-md text-on-primary-container/90">Total Group Fund</Text>
             <Text
               className="font-display-lg text-display-lg text-on-primary-container"
@@ -135,14 +146,13 @@ export default function GroupDetailScreen() {
               adjustsFontSizeToFit>
               {formatRwf(group.funding_progress.contributed)}
             </Text>
-            <View className="mt-2 h-2 overflow-hidden rounded-full bg-white/20">
+            <View className="h-2 overflow-hidden rounded-full bg-white/20">
               <View
                 className="h-full rounded-full bg-secondary-fixed"
                 style={{ width: `${group.funding_progress.percent}%` }}
               />
             </View>
-           
-            <Text className="mt-1 font-label-sm text-label-sm text-on-primary-container">
+            <Text className="font-label-sm text-label-sm text-on-primary-container">
               {group.funding_progress.percent}% of {formatRwf(group.funding_progress.required)} Target Goal
             </Text>
           </View>
@@ -150,7 +160,7 @@ export default function GroupDetailScreen() {
           {/* Same membership logic as the plot list cards: showing "Join Group" to someone
               who's already the creator or an approved member made no sense — this was hardcoded
               unconditionally before, which is exactly why it kept appearing regardless of status. */}
-          <View className="gap-sm rounded-lg bg-surface-container-lowest p-md shadow-investment">
+          <View className="gap-md rounded-lg bg-surface-container-lowest p-md shadow-investment">
             {membershipStatus === 'member' ? (
               <View className="flex-row items-center justify-center gap-2 self-center rounded-full bg-secondary-container px-4 py-2">
                 <MaterialIcons name="check-circle" size={16} color={colors['on-secondary-container']} />
@@ -173,13 +183,13 @@ export default function GroupDetailScreen() {
           </View>
 
           <Pressable
-            onPress={() => {}}
+            onPress={() => router.push({ pathname: '/chat/[id]', params: { id, name: group.name } })}
             className="flex-row items-center justify-between rounded-lg bg-surface-container-highest p-sm shadow-investment active:opacity-90">
             <View className="flex-row items-center gap-3">
               <View className="h-11 w-11 items-center justify-center rounded-full bg-primary">
                 <MaterialIcons name="chat" size={20} color={colors['on-primary']} />
               </View>
-              <View>
+              <View className=" flex-1 gap-1">
                 <Text className="font-label-md text-label-md text-on-surface">Group Discussion</Text>
                 <Text className="font-label-sm text-label-sm text-on-surface-variant">
                   Chat with {group.members_count} member{group.members_count === 1 ? '' : 's'}
@@ -188,6 +198,9 @@ export default function GroupDetailScreen() {
             </View>
             <MaterialIcons name="arrow-forward" size={18} color={colors.primary} />
           </Pressable>
+
+
+        </View>
 
           {/* Group Insights — real fields only; the mockup's "Days Left"/"Yield Est." aren't
               modeled on InvestGroup, so this shows what's actually available instead of faking them. */}
@@ -218,6 +231,29 @@ export default function GroupDetailScreen() {
               </View>
             </View>
           </View>
+
+          {/* Projects under this group — each project's own "View Details" goes to its full
+              Project Detail page (image gallery, highlights), distinct from this group overview. */}
+          {groupProjects.length > 0 ? (
+            <View className="gap-md">
+              <View className="gap-1">
+                <Text className="font-headline-md text-headline-md text-on-surface">Projects under this group</Text>
+                <Text className="font-body-md text-body-md text-on-surface-variant">
+                  Track each development's funding outlook and design assets, shared with members.
+                </Text>
+              </View>
+              <View className="gap-gutter">
+                {groupProjects.map((project) => (
+                  <ProjectCard
+                    key={project.id}
+                    project={project}
+                    investorsCount={group.members_count}
+                    onViewDetails={() => router.push({ pathname: '/project/[id]', params: { id: String(project.id) } })}
+                  />
+                ))}
+              </View>
+            </View>
+          ) : null}
 
           {/* Documents */}
           <View className="gap-md rounded-lg bg-surface-container-lowest p-md shadow-investment">

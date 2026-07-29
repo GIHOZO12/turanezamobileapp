@@ -74,10 +74,9 @@ export default function ProfileScreen() {
         contentContainerClassName="gap-xl px-margin-mobile"
         contentContainerStyle={{ paddingTop: headerHeight, paddingBottom: BottomTabInset + 24 }}
         showsVerticalScrollIndicator={false}>
-        {/* Profile header */}
+       
         <View className="items-center gap-md py-md">
-          {/* No avatar/photo field on UserMe (checked users/serializers.py) — initials on a
-              solid background is more honest than pointing every user at the same stock photo. */}
+         
           <View className="h-24 w-24 items-center justify-center rounded-full bg-primary shadow-investment">
             <Text className="font-headline-lg text-headline-lg text-on-primary">
               {displayUser ? getInitials(displayUser.full_name) : '…'}
@@ -94,12 +93,11 @@ export default function ProfileScreen() {
           ) : null}
         </View>
 
-        {/* Account Settings */}
+      
         <View className="gap-sm">
           <Text className="px-2 font-label-md text-label-md text-on-surface-variant">ACCOUNT SETTINGS</Text>
-          <View className="divide-y divide-outline-variant/30 overflow-hidden rounded-lg bg-surface-container-lowest shadow-investment p-3">
-            {/* Editing profile fields isn't built yet — the backend supports it (PATCH /me/),
-                this screen just doesn't have the form yet */}
+          <View className="flex-1 gap-md  divide-y divide-outline-variant/30 overflow-hidden rounded-lg bg-surface-container-lowest shadow-investment p-3">
+
             <SettingsRow
               icon="person"
               title="Account Info"
@@ -110,7 +108,6 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Support */}
         <View className="gap-sm">
           <Text className="px-2 font-label-md text-label-md text-on-surface-variant">SUPPORT</Text>
           <View className="overflow-hidden rounded-lg bg-surface-container-lowest shadow-investment">
@@ -118,9 +115,7 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Log Out — local-only (clears app state + stored JWT), doesn't call the real
-            POST /logout/ endpoint yet: that's a mutation on an authenticated session, so it hits
-            the same CSRF wall as everything else waiting on the backend's /token/ endpoint. */}
+
         <Pressable
           onPress={handleLogOut}
           className="flex-row items-center justify-center gap-2 rounded-full bg-error/10 py-4 active:bg-error/20">

@@ -3,16 +3,16 @@ import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
-import { fetchMyApplications, type GroupApplication } from '@/api/applications';
-import { fetchInvestGroups, type InvestGroup } from '@/api/groups';
 import { ApiError } from '@/api/client';
+import { extractRwfAmount, fetchDashboard, type DashboardOverview } from '@/api/dashboard';
+import { fetchInvestGroups, type InvestGroup } from '@/api/groups';
+import { fetchProjects, type Project } from '@/api/projects';
 import { Button } from '@/components/ui/button';
-import { PlotListingCard } from '@/components/ui/plot-listing-card';
+import { ProjectCard } from '@/components/ui/project-card';
 import { TopAppBar } from '@/components/ui/top-app-bar';
 import colors from '@/constants/colors';
 import { BottomTabInset } from '@/constants/layout';
-import { useAuth } from '@/contexts/auth-context';
-import { computeMembershipStatus, indexApplicationsByGroup } from '@/lib/membership';
+import { formatRwf } from '@/lib/format';
 
 const TRUST_ITEMS = [
   { icon: 'health-and-safety', label: 'Legally Escrowed' },
@@ -22,46 +22,41 @@ const TRUST_ITEMS = [
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { user } = useAuth();
-  // The header floats (position: absolute) over the scroll content, so nothing reserves space
-  // for it automatically. Measuring its real rendered height via onLayout — instead of hardcoding
-  // a padding number on the ScrollView and hoping it stays in sync — means the two can never
-  // drift apart again, no matter what gets added to the header later. 80 is just a first-paint
-  // guess close to the real height, so there's no visible jump before onLayout fires.
+
   const [headerHeight, setHeaderHeight] = useState(80);
-  const [featuredPlots, setFeaturedPlots] = useState<InvestGroup[]>([]);
-  const [applications, setApplications] = useState<GroupApplication[]>([]);
-  const [isLoadingPlots, setIsLoadingPlots] = useState(true);
-  const [plotsError, setPlotsError] = useState<string | null>(null);
+  const [featuredProjects, setFeaturedProjects] = useState<Project[]>([]);
+  const [groups, setGroups] = useState<InvestGroup[]>([]);
+  const [dashboard, setDashboard] = useState<DashboardOverview | null>(null);
+  const [isLoadingProjects, setIsLoadingProjects] = useState(true);
+  const [projectsError, setProjectsError] = useState<string | null>(null);
 
   useEffect(() => {
+    fetchProjects()
+      .then((data) => setFeaturedProjects(data.results.slice(0, 3)))
+      .catch((err) => setProjectsError(err instanceof ApiError ? err.message : 'Could not load featured projects.'))
+      .finally(() => setIsLoadingProjects(false));
+
     fetchInvestGroups()
-      .then((data) => setFeaturedPlots(data.results.slice(0, 2)))
-      .catch((err) => setPlotsError(err instanceof ApiError ? err.message : 'Could not load featured plots.'))
-      .finally(() => setIsLoadingPlots(false));
-    // Best-effort, same reasoning as plots-screen.tsx — not worth failing the dashboard over.
-    fetchMyApplications()
-      .then((data) => setApplications(data.results))
+      .then((data) => setGroups(data.results))
+      .catch(() => {});
+
+    // Best-effort — the hero stats just fall back to a loading dash rather than blocking the
+    // rest of the page over this one call.
+    fetchDashboard()
+      .then(setDashboard)
       .catch(() => {});
   }, []);
 
-  const applicationsByGroup = useMemo(() => indexApplicationsByGroup(applications), [applications]);
+  const membersCountByGroup = useMemo(() => new Map(groups.map((g) => [g.id, g.members_count])), [groups]);
 
   return (
     <View className="flex-1 bg-background">
-      {/* The mockup's header is fixed+blurred over the scrolling content. RN has no CSS
-          backdrop-filter, so this is a plain translucent bar instead of a true blur — a
-          deliberate simplification, not a limitation we hit by accident. */}
       <TopAppBar translucent onHeightChange={setHeaderHeight} />
 
-      {/* paddingTop and paddingBottom both live in contentContainerStyle, not split between
-          className and style — mixing the two for the same property is exactly what caused the
-          header to overlap content earlier (a py-4/pt-28 conflict), so both go through one path now. */}
       <ScrollView
         contentContainerClassName="gap-xl px-margin-mobile"
         contentContainerStyle={{ paddingTop: headerHeight, paddingBottom: BottomTabInset + 40 }}
         showsVerticalScrollIndicator={false}>
-        {/* Hero */}
         <View className="gap-md pt-sm">
           <Text className="font-display-lg text-display-lg text-on-background">
             Invest in{'\n'}
@@ -87,64 +82,66 @@ export default function HomeScreen() {
                 <MaterialIcons name="account-balance-wallet" size={18} color={colors.primary} />
               </View>
               <Text className="font-label-md text-label-md text-on-surface-variant">Total Invested</Text>
-              <Text className="font-headline-md text-headline-md text-on-surface">RWF 4.2B+</Text>
-              <Text className="font-label-sm text-label-sm text-secondary">↑ 12% this month</Text>
+              <Text className="font-headline-md text-headline-md text-on-surface">
+                {formatRwf(extractRwfAmount(dashboard?.summary.totalInvested ?? []))}
+              </Text>
             </View>
             <View className="flex-1 gap-sm rounded-lg bg-surface-container-lowest p-md shadow-investment">
               <View className="h-9 w-9 items-center justify-center rounded-full bg-primary-fixed">
                 <MaterialIcons name="groups" size={18} color={colors.primary} />
               </View>
               <Text className="font-label-md text-label-md text-on-surface-variant">Active Groups</Text>
-              <Text className="font-headline-md text-headline-md text-on-surface">1,482</Text>
-              <Text className="font-label-sm text-label-sm text-on-surface-variant">Across 30 districts</Text>
+              <Text className="font-headline-md text-headline-md text-on-surface">
+                {dashboard?.summary.activeGroups ?? 0}
+              </Text>
             </View>
           </View>
         </View>
 
-        {/* Featured Plots */}
+    
         <View className="gap-md">
           <View className="gap-1">
-            <Text className="font-headline-lg text-headline-lg text-on-background">Featured Opportunities</Text>
+            <Text className="font-headline-lg text-headline-lg text-on-background">Featured Projects</Text>
             <Text className="font-body-md text-body-md text-on-surface-variant">
-              Hand-picked prime plots currently open for co-investment.
+              Hand-picked developments currently open for co-investment.
             </Text>
           </View>
-          <Pressable onPress={() => router.push('/plots')} className="flex-row items-center gap-2 self-start">
+          <Pressable onPress={() => router.push('/projects')} className="flex-row items-center gap-2 self-start">
             <Text className="font-label-md text-label-md text-primary">View All</Text>
             <MaterialIcons name="arrow-forward" size={18} color={colors.primary} />
           </Pressable>
 
-          {isLoadingPlots ? (
+          {isLoadingProjects ? (
             <ActivityIndicator className="py-lg" color={colors.primary} />
-          ) : plotsError ? (
+          ) : projectsError ? (
             <Text className="rounded-lg bg-error-container px-md py-sm text-center font-label-md text-label-md text-on-error-container">
-              {plotsError}
+              {projectsError}
             </Text>
-          ) : featuredPlots.length === 0 ? (
+          ) : featuredProjects.length === 0 ? (
             <Text className="py-lg text-center font-body-md text-body-md text-on-surface-variant">
-              No plots available yet.
+              No projects available yet.
             </Text>
           ) : (
             <View className="gap-gutter">
-              {featuredPlots.map((group) => (
-                <PlotListingCard
-                  key={group.id}
-                  group={group}
-                  currentUserId={user?.id}
-                  membershipStatus={computeMembershipStatus(group, user?.id, applicationsByGroup)}
-                  onViewDetails={() => router.push({ pathname: '/group/[id]', params: { id: String(group.id) } })}
-                  onJoin={() => router.push({ pathname: '/group/[id]/apply', params: { id: String(group.id) } })}
+              {featuredProjects.map((project) => (
+                <ProjectCard
+                  key={project.id}
+                  project={project}
+                  investorsCount={project.group != null ? membersCountByGroup.get(project.group) : undefined}
+                  onViewDetails={() =>
+                    project.group != null &&
+                    router.push({ pathname: '/group/[id]', params: { id: String(project.group) } })
+                  }
                 />
               ))}
             </View>
           )}
         </View>
 
-        <View className=" items-center gap-md rounded-lg bg-primary p-lg bottom-0">
+        <View className=" p-lg items-center gap-md rounded-lg bg-primary ">
           <Text className="text-center font-headline-lg text-headline-lg text-on-primary">Why Choose Turaneza?</Text>
-          <Text className=" flex-1 text-center font-body-md text-body-md text-primary-fixed">
-            
-            we are your trusted partner for secure, transparent, and profitable land co-investment in Rwanda.
+          <Text className="text-center font-body-md text-body-md text-primary-fixed">
+            We are your trusted partner for secure, transparent, and profitable land co-investment in Rwanda.
           </Text>
           <View className="w-full flex-row gap-md">
             {TRUST_ITEMS.map((item) => (

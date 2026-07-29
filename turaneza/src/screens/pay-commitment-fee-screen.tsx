@@ -6,23 +6,43 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { fetchGroupApplication, submitCommitmentFeeProof, type GroupApplication, type PickedFile } from '@/api/applications';
 import { ApiError } from '@/api/client';
+import { fetchInvestGroup } from '@/api/groups';
 import { Button } from '@/components/ui/button';
 import { FilePickerField } from '@/components/ui/file-picker-field';
 import colors from '@/constants/colors';
 import { formatRwf } from '@/lib/format';
 
-const STEPS = [
-  'Dial *182*8*1# or open your Mobile Money app.',
-  'Enter the merchant code below when prompted.',
-  'Enter the exact commitment fee amount and confirm.',
-  'Take a screenshot of the confirmation and upload it here.',
-];
-
-function PaymentDetailRow({ label, value }: { label: string; value: string }) {
+/**
+ * A step card with a big centered icon badge, bold title, and prominent value — the "Dial MoMo" /
+ * "Merchant Code" layout from the reference product's commitment-fee page.
+ */
+function PaymentStepCard({
+  icon,
+  iconColor,
+  iconBg,
+  title,
+  value,
+  valueColor,
+  caption,
+}: {
+  icon: keyof typeof MaterialIcons.glyphMap;
+  iconColor: string;
+  iconBg: string;
+  title: string;
+  value: string;
+  valueColor: string;
+  caption: string;
+}) {
   return (
-    <View className="flex-row items-center justify-between rounded-lg bg-on-primary-container/10 px-md py-sm">
-      <Text className="font-label-md text-label-md text-on-primary-container/80">{label}</Text>
-      <Text className="font-headline-md text-headline-md text-on-primary-container">{value}</Text>
+    <View className="items-center gap-2 rounded-lg bg-surface-container-lowest p-lg shadow-investment">
+      <View className="h-14 w-14 items-center justify-center rounded-full" style={{ backgroundColor: iconBg }}>
+        <MaterialIcons name={icon} size={26} color={iconColor} />
+      </View>
+      <Text className="font-headline-md text-headline-md text-on-surface">{title}</Text>
+      <Text className="font-headline-lg text-headline-lg" style={{ color: valueColor }}>
+        {value}
+      </Text>
+      <Text className="text-center font-body-md text-body-md text-on-surface-variant">{caption}</Text>
     </View>
   );
 }
@@ -31,6 +51,7 @@ export default function PayCommitmentFeeScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [application, setApplication] = useState<GroupApplication | null>(null);
+  const [groupName, setGroupName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -44,6 +65,13 @@ export default function PayCommitmentFeeScreen() {
       .then((data) => {
         setApplication(data);
         if (data.commitment_fee_proof) setIsSubmitted(true);
+        // Best-effort — the payment instructions still make sense without the group's name,
+        // it's just a nicer, more specific intro line when this succeeds.
+        if (data.group != null) {
+          fetchInvestGroup(data.group)
+            .then((group) => setGroupName(group.name))
+            .catch(() => {});
+        }
       })
       .catch((err) => setLoadError(err instanceof ApiError ? err.message : 'Could not reach the server. Check your connection.'))
       .finally(() => setIsLoading(false));
@@ -73,7 +101,7 @@ export default function PayCommitmentFeeScreen() {
           className="h-10 w-10 items-center justify-center rounded-full active:bg-surface-container-high">
           <MaterialIcons name="arrow-back" size={24} color={colors.primary} />
         </Pressable>
-        <Text className="font-headline-md text-headline-md text-primary">Pay Commitment Fee</Text>
+        <Text className="font-headline-md text-headline-md text-primary">TURANEZA</Text>
       </View>
 
       {isLoading ? (
@@ -99,29 +127,63 @@ export default function PayCommitmentFeeScreen() {
           className="flex-1"
           contentContainerClassName="gap-xl px-margin-mobile pb-lg"
           showsVerticalScrollIndicator={false}>
-          <View className="gap-md rounded-lg bg-primary p-md shadow-investment">
-            <Text className="font-headline-md text-headline-md text-on-primary">Commitment Fee Payment</Text>
-            <PaymentDetailRow label="Merchant Code" value={application.momo_payment_code} />
-            <PaymentDetailRow label="Amount" value={formatRwf(application.commitment_fee_amount_rwf)} />
+          <View className="gap-sm pt-sm">
+            <Text className="font-headline-editorial text-headline-editorial text-primary">Commitment Fee</Text>
+            <Text className="font-body-editorial text-body-editorial text-on-surface-variant">
+              To secure your investment slot{groupName ? ' in the ' : ''}
+              {groupName ? <Text className="font-headline-editorial text-body-editorial text-on-surface">{groupName}</Text> : ''}
+              , please complete the commitment fee payment below.
+            </Text>
           </View>
 
-          <View className="gap-md rounded-lg bg-surface-container-lowest p-md shadow-investment">
-            <Text className="font-headline-md text-headline-md text-on-surface">How to Pay</Text>
-            <View className="gap-sm">
-              {STEPS.map((step, index) => (
-                <View key={step} className="flex-row items-start gap-3">
-                  <View className="mt-[1px] h-6 w-6 items-center justify-center rounded-full bg-primary/10">
-                    <Text className="font-label-sm text-label-sm text-primary">{index + 1}</Text>
-                  </View>
-                  <Text className="flex-1 font-body-md text-body-md text-on-surface-variant">{step}</Text>
-                </View>
-              ))}
+          <PaymentStepCard
+            icon="smartphone"
+            iconColor={colors['on-primary']}
+            iconBg={colors.primary}
+            title="Dial MoMo"
+            value="Dial *182*8*1*momo code#"
+            valueColor={colors.primary}
+            caption="Open your phone dialer and enter the shortcode."
+          />
+
+          <PaymentStepCard
+            icon="storefront"
+            iconColor={colors['on-secondary']}
+            iconBg={colors.secondary}
+            title="Momo Code"
+            value={application.momo_payment_code}
+            valueColor={colors.secondary}
+            caption="Select 'Pay Merchant' and enter the code."
+          />
+
+          <View className="flex-row items-center gap-4 rounded-lg bg-surface-container-lowest p-lg shadow-investment">
+            <View
+              className="h-14 w-14 items-center justify-center rounded-full"
+              style={{ backgroundColor: colors['tertiary-fixed'] }}>
+              <MaterialIcons name="credit-card" size={26} color={colors.tertiary} />
+            </View>
+            <View className="flex-1 gap-1">
+              <Text className="font-label-md text-label-md text-on-surface-variant">Total Amount</Text>
+              <Text className="font-headline-lg text-headline-lg text-on-surface">
+                {formatRwf(application.commitment_fee_amount_rwf)}
+              </Text>
+            </View>
+            <View className="rounded-full bg-secondary-container px-3 py-1">
+              <Text className="font-label-sm uppercase tracking-wider text-label-sm text-on-secondary-container">
+                Fixed Fee
+              </Text>
             </View>
           </View>
 
           <View className="gap-md rounded-lg bg-surface-container-lowest p-md shadow-investment">
             <Text className="font-headline-md text-headline-md text-on-surface">Upload Proof of Payment</Text>
-            <FilePickerField value={proof} onChange={setProof} helperText="Screenshot of your Mobile Money confirmation." />
+            <FilePickerField
+              value={proof}
+              onChange={setProof}
+              accept={['image/*']}
+              uploadLabel="Upload Payment Screenshot"
+              helperText="Screenshot of your Mobile Money confirmation."
+            />
           </View>
 
           {submitError && (

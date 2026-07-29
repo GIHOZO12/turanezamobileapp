@@ -3,9 +3,6 @@ import * as SecureStore from 'expo-secure-store';
 const ACCESS_TOKEN_KEY = 'turaneza_access_token';
 const REFRESH_TOKEN_KEY = 'turaneza_refresh_token';
 
-// In-memory cache alongside SecureStore: reading SecureStore is async, but apiFetch needs the
-// token synchronously on every request. loadAccessToken() primes this cache once at app startup
-// (see auth-context.tsx's bootstrap effect); every request after that reads the cache directly.
 let cachedAccessToken: string | null = null;
 
 export async function loadAccessToken(): Promise<string | null> {

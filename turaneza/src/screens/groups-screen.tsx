@@ -67,7 +67,7 @@ export default function GroupsScreen() {
         ) : (
           <>
             <View className="flex-row gap-md">
-              <View className="flex-1 gap-xs rounded-lg bg-primary-container p-md">
+              <View className="flex-1 items-center gap-xs rounded-lg bg-primary-container p-md">
                 <Text className="font-label-md text-label-md text-on-primary-container/90">Total Invested</Text>
                 <Text className="font-headline-md text-headline-md text-on-primary-container">
                   {formatRwf(extractRwfAmount(dashboard?.summary.totalInvested ?? []))}

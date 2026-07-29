@@ -8,7 +8,7 @@ const TABS = [
   { name: 'plots', label: 'Plots', icon: 'real-estate-agent' },
   { name: 'groups', label: 'Groups', icon: 'groups' },
   { name: 'chat', label: 'Chat', icon: 'chat' },
-  { name: 'profile', label: 'Profile', icon: 'person' },
+  { name: 'projects', label: 'Projects', icon: 'apartment' },
 ] as const;
 
 export default function AppTabs() {

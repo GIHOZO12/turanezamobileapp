@@ -117,130 +117,132 @@ export default function GroupApplicationScreen() {
       </View>
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
-          <ScrollView contentContainerClassName="gap-lg px-margin-mobile pb-lg" keyboardShouldPersistTaps="handled">
-            <View className="gap-md rounded-lg bg-surface-container-lowest p-md shadow-investment">
-              <View className="gap-xs">
-                <Text className="font-label-md text-label-md text-on-surface-variant">Full Name</Text>
-                <TextField icon="person" value={form.name} onChangeText={(v) => set('name', v)} />
-              </View>
-              <View className="gap-xs">
-                <Text className="font-label-md text-label-md text-on-surface-variant">Email</Text>
-                <TextField
-                  icon="mail"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  value={form.email}
-                  onChangeText={(v) => set('email', v)}
-                />
-              </View>
-              <View className="gap-xs">
-                <Text className="font-label-md text-label-md text-on-surface-variant">Phone Number</Text>
-                <TextField
-                  icon="call"
-                  keyboardType="phone-pad"
-                  value={form.phone_number}
-                  onChangeText={(v) => set('phone_number', v)}
-                />
-              </View>
-              <View className="gap-xs">
-                <Text className="font-label-md text-label-md text-on-surface-variant">Location / City</Text>
-                <TextField
-                  icon="location-on"
-                  placeholder="Kigali, Rwanda"
-                  value={form.location}
-                  onChangeText={(v) => set('location', v)}
-                />
-              </View>
-              <View className="gap-xs">
-                <Text className="font-label-md text-label-md text-on-surface-variant">National ID / Passport</Text>
-                <TextField icon="badge" value={form.id_number} onChangeText={(v) => set('id_number', v)} />
-              </View>
-              <View className="gap-xs">
-                <Text className="font-label-md text-label-md text-on-surface-variant">Occupation</Text>
-                <ChipSelect
-                  value={form.occupation}
-                  onChange={(v) => set('occupation', v)}
-                  options={[
-                    { value: 'employee', label: 'Employee' },
-                    { value: 'entrepreneur', label: 'Entrepreneur' },
-                    { value: 'student', label: 'Student' },
-                    { value: 'none', label: 'No Occupation' },
-                    { value: 'other', label: 'Other' },
-                  ]}
-                />
-              </View>
+        <ScrollView contentContainerClassName="gap-xl px-margin-mobile pb-lg" keyboardShouldPersistTaps="handled">
+          <View className="gap-md rounded-lg bg-surface-container-lowest p-md shadow-investment">
+            <View className="gap-xs">
+              <Text className="font-label-md text-label-md text-on-surface-variant">Full Name</Text>
+              <TextField icon="person" value={form.name} onChangeText={(v) => set('name', v)} />
             </View>
-
-            <View className="gap-md rounded-lg bg-surface-container-lowest p-md shadow-investment">
-              <View className="gap-xs">
-                <SectionLabel>Why this group?</SectionLabel>
-                <TextField
-                  icon="lightbulb"
-                  multiline
-                  numberOfLines={3}
-                  maxLength={MOTIVATION_MAX}
-                  placeholder="Describe your investment focus, capital readiness, or the impact you want to achieve with the group."
-                  value={form.motivation}
-                  onChangeText={(v) => set('motivation', v)}
-                />
-                <Text className="text-[12px] text-on-surface-variant">
-                  {form.motivation.length}/{MOTIVATION_MAX} characters
-                </Text>
-              </View>
-              <View className="gap-xs">
-                <SectionLabel>What value are you bringing?</SectionLabel>
-                <TextField
-                  icon="star"
-                  multiline
-                  numberOfLines={3}
-                  placeholder="Describe liquidity, experience, network, or expertise you can offer other members."
-                  value={form.skills}
-                  onChangeText={(v) => set('skills', v)}
-                />
-                <Text className="text-[12px] text-on-surface-variant">Highlight concrete support you'll provide.</Text>
-              </View>
-            </View>
- 
-           
-
-            <View className="gap-md rounded-lg bg-surface-container-lowest p-md shadow-investment">
-              <View className="gap-xs">
-                <Text className="font-label-md text-label-md text-on-surface-variant">Additional Notes (optional)</Text>
-                <TextField
-                  icon="notes"
-                  multiline
-                  numberOfLines={3}
-                  placeholder="Share compliance references, liquidity timelines, or anything the admin should know."
-                  value={form.notes}
-                  onChangeText={(v) => set('notes', v)}
-                />
-              </View>
-              <CheckboxRow
-                label="I confirm the above information is accurate and grant Turaneza permission to contact me regarding onboarding, compliance, and investment opportunities."
-                value={form.consent_acknowledged}
-                onChange={(v) => set('consent_acknowledged', v)}
+            <View className="gap-xs">
+              <Text className="font-label-md text-label-md text-on-surface-variant">Email</Text>
+              <TextField
+                icon="mail"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={form.email}
+                onChangeText={(v) => set('email', v)}
               />
             </View>
+            <View className="gap-xs">
+              <Text className="font-label-md text-label-md text-on-surface-variant">Phone Number</Text>
+              <TextField
+                icon="call"
+                keyboardType="phone-pad"
+                value={form.phone_number}
+                onChangeText={(v) => set('phone_number', v)}
+              />
+            </View>
+            <View className="gap-xs">
+              <Text className="font-label-md text-label-md text-on-surface-variant">Location / City</Text>
+              <TextField
+                icon="location-on"
+                placeholder="Kigali, Rwanda"
+                value={form.location}
+                onChangeText={(v) => set('location', v)}
+              />
+            </View>
+            <View className="gap-xs">
+              <Text className="font-label-md text-label-md text-on-surface-variant">National ID / Passport</Text>
+              <TextField icon="badge" value={form.id_number} onChangeText={(v) => set('id_number', v)} />
+            </View>
+            <View className="gap-xs">
+              <Text className="font-label-md text-label-md text-on-surface-variant">Occupation</Text>
+              <ChipSelect
+                value={form.occupation}
+                onChange={(v) => set('occupation', v)}
+                options={[
+                  { value: 'employee', label: 'Employee' },
+                  { value: 'entrepreneur', label: 'Entrepreneur' },
+                  { value: 'student', label: 'Student' },
+                  { value: 'none', label: 'No Occupation' },
+                  { value: 'other', label: 'Other' },
+                ]}
+              />
+            </View>
+          </View>
 
-            {error && (
-              <Text className="rounded-lg bg-error-container px-md py-sm font-label-md text-label-md text-on-error-container">
-                {error}
+          <View className="gap-md rounded-lg bg-surface-container-lowest p-md shadow-investment">
+            <View className="gap-xs my-md">
+              <SectionLabel>Why this group?</SectionLabel>
+              <TextField
+                icon="lightbulb"
+                multiline
+                numberOfLines={3}
+                maxLength={MOTIVATION_MAX}
+                placeholder="Describe your investment focus, capital readiness, or the impact you want to achieve with the group."
+                value={form.motivation}
+                onChangeText={(v) => set('motivation', v)}
+              />
+              <Text className="text-[12px] text-on-surface-variant">
+                {form.motivation.length}/{MOTIVATION_MAX} characters
               </Text>
-            )}
+            </View>
+            
+          </View>
 
-            <View className="flex-row gap-md">
-              <Button label="Cancel" variant="secondary" onPress={() => router.back()} className="flex-1" />
+          
+
+         <View className="my-md gap-md rounded-lg bg-surface-container-lowest p-md shadow-investment">
+  <CheckboxRow 
+    label="I confirm the above information is accurate and grant Turaneza permission to contact me regarding onboarding, compliance, and investment opportunities." 
+    value={form.consent_acknowledged} 
+    onChange={(v) => set('consent_acknowledged', v)} 
+  />
+</View>
+
+
+          {error && (
+            <Text className="rounded-lg bg-error-container px-md py-sm font-label-md text-label-md text-on-error-container">
+              {error}
+            </Text>
+          )}
+
+          <View className="flex-row gap-md">
+
+            <Button
+              label="Submit Application"
+              onPress={handleSubmit}
+              loading={isSubmitting}
+              disabled={!canSubmit}
+              className="flex-1"
+            />
+          </View>
+
+          {group ? (
+            <View className="gap-md rounded-lg bg-surface-container-lowest p-md shadow-investment">
+              <Text className="font-headline-md text-headline-md text-on-surface">Have a question first?</Text>
+              <Text className="font-body-md text-body-md text-on-surface-variant">
+
+              </Text>
+              <TextField
+                icon="chat"
+                multiline
+                numberOfLines={2}
+                placeholder="Ask about timelines, terms, or anything else..."
+                value={clarityMessage}
+                onChangeText={setClarityMessage}
+              />
+              {clarityStatus && <Text className="font-label-sm text-label-sm text-secondary">{clarityStatus}</Text>}
               <Button
-                label="Submit Application"
-                onPress={handleSubmit}
-                loading={isSubmitting}
-                disabled={!canSubmit}
-                className="flex-1"
+                label="Send Message"
+                variant="secondary"
+                onPress={handleSendClarity}
+                loading={isSendingClarity}
+                disabled={clarityMessage.trim().length === 0}
               />
             </View>
-
-           
-          </ScrollView>
+          ) : null}
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
