@@ -2,7 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { PickedFile } from '@/api/applications';
 import { ApiError } from '@/api/client';
@@ -14,6 +14,7 @@ import colors from '@/constants/colors';
 
 export default function SubmitPlotScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [description, setDescription] = useState('');
   const [plotSize, setPlotSize] = useState('');
   const [landTitleNumber, setLandTitleNumber] = useState('');
@@ -78,7 +79,10 @@ export default function SubmitPlotScreen() {
         </View>
       ) : (
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
-          <ScrollView contentContainerClassName="gap-xl px-margin-mobile pb-lg" keyboardShouldPersistTaps="handled">
+          <ScrollView
+            contentContainerClassName="gap-xl px-margin-mobile"
+            contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
+            keyboardShouldPersistTaps="handled">
             <Text className="font-body-md text-body-md text-on-surface-variant">
               Provide the details below to list your land for institutional co-investment. Our team will verify the
               ownership and zoning status.
@@ -163,10 +167,8 @@ export default function SubmitPlotScreen() {
               onPress={handleSubmit}
               loading={isSubmitting}
               disabled={!canSubmit}
-              className="w-full bottom-md "
+              className="w-full"
             />
-
-            
           </ScrollView>
         </KeyboardAvoidingView>
       )}

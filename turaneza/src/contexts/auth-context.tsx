@@ -10,6 +10,8 @@ type AuthContextValue = {
   isBootstrapping: boolean;
   user: UserMe | null;
   login: (email: string, password: string) => Promise<void>;
+  /** Exchanges a Google ID token (from the native Google Sign-In flow) for our own JWTs. */
+  signInWithGoogle: (idToken: string) => Promise<void>;
   /** Call after verify-email succeeds — the backend has already created a session by then. */
   completeSession: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -46,13 +48,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       isBootstrapping,
       user,
       login: async (email, password) => {
-        // JWT first, then /me/ — deliberately not session-cookie-first anymore. Some deployments
-        // (e.g. Railway, which needs SESSION_COOKIE_SAMESITE=None for its cross-domain setup) don't
-        // reliably hand the just-set session cookie back on the very next request, which made /me/
-        // 401 immediately after a successful /login/. Fetching the JWT first and caching it means
-        // /me/ rides on the Authorization header instead, which doesn't depend on cookie behavior
-        // at all. fetchMobileToken() validates credentials via the same LoginSerializer as /login/,
-        // so failures here (wrong password, unverified email, ...) surface the same error messages.
+   
         const tokens = await authApi.fetchMobileToken({ email, password });
         await setTokens(tokens.access, tokens.refresh);
 
@@ -60,9 +56,16 @@ export function AuthProvider({ children }: PropsWithChildren) {
         setUser(me);
         setIsSignedIn(true);
 
-        // Best-effort, non-blocking: still worth having the session cookie set for anything that
-        // might fall back to it, but nothing here depends on it succeeding anymore.
+     
         authApi.login({ email, password }).catch(() => {});
+      },
+      signInWithGoogle: async (idToken) => {
+        const tokens = await authApi.googleAuth({ credential: idToken });
+        await setTokens(tokens.access, tokens.refresh);
+
+        const me = await authApi.fetchMe();
+        setUser(me);
+        setIsSignedIn(true);
       },
       completeSession: async () => {
         const me = await authApi.fetchMe();

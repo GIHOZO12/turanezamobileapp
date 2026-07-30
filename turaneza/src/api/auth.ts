@@ -57,6 +57,13 @@ export function fetchMobileToken(input: { email: string; password: string }) {
   });
 }
 
+export function googleAuth(input: { credential: string }) {
+  return apiFetch<{ access: string; refresh: string }>('/api/v1/users/google/token/', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
 export function requestPasswordReset(input: { email: string }) {
   return apiFetch<{ message: string }>('/api/v1/users/password-reset/', {
     method: 'POST',

@@ -9,20 +9,22 @@ import { Button } from '@/components/ui/button';
 import { TextField } from '@/components/ui/text-field';
 import colors from '@/constants/colors';
 import { useAuth } from '@/contexts/auth-context';
+import { useGoogleSignIn } from '@/hooks/use-google-sign-in';
 
 export default function SignInScreen() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, signInWithGoogle } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
 
   async function handleSignIn() {
     setError(null);
     setIsSubmitting(true);
     try {
-      
+
       await login(email, password);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not reach the server. Check your connection.');
@@ -31,10 +33,24 @@ export default function SignInScreen() {
     }
   }
 
+  const { isReady: isGoogleReady, promptAsync: promptGoogleSignIn } = useGoogleSignIn(
+    async (idToken) => {
+      setError(null);
+      setIsGoogleSubmitting(true);
+      try {
+        await signInWithGoogle(idToken);
+      } catch (err) {
+        setError(err instanceof ApiError ? err.message : 'Could not sign in with Google.');
+      } finally {
+        setIsGoogleSubmitting(false);
+      }
+    },
+    (message) => setError(message)
+  );
+
   return (
     <SafeAreaView className="flex-1 bg-background">
-      {/* KeyboardAvoidingView pushes content up on iOS so the keyboard doesn't cover the
-          focused input — Android handles this automatically via `windowSoftInputMode`. */}
+
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
         <ScrollView
           contentContainerClassName="flex-grow justify-center gap-lg px-margin-mobile py-lg"
@@ -93,7 +109,13 @@ export default function SignInScreen() {
               <View className="h-[1px] flex-1 bg-outline-variant" />
             </View>
 
-            <Button label="Google" variant="secondary" onPress={() => {}} />
+            <Button
+              label="Google"
+              variant="secondary"
+              onPress={() => promptGoogleSignIn()}
+              loading={isGoogleSubmitting}
+              disabled={!isGoogleReady}
+            />
 
             <Pressable onPress={() => router.push('/sign-up')} className="flex-row flex-wrap justify-center">
               <Text className="font-body-md text-body-md text-on-surface-variant">Don&apos;t have an account? </Text>

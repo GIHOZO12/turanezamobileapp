@@ -45,8 +45,7 @@ export default function ProfileScreen() {
   const [user, setUser] = useState<UserMe | null>(null);
   const [headerHeight, setHeaderHeight] = useState(80);
 
-  // Defining fetchUser doesn't run it — useEffect is what actually calls it once, when this
-  // screen first mounts. The empty dependency array (`[]`) means "run once, not on every render."
+
   useEffect(() => {
     fetchMe()
       .then(setUser)

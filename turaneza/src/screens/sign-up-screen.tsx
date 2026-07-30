@@ -9,15 +9,34 @@ import { ApiError } from '@/api/client';
 import { Button } from '@/components/ui/button';
 import { TextField } from '@/components/ui/text-field';
 import colors from '@/constants/colors';
+import { useAuth } from '@/contexts/auth-context';
+import { useGoogleSignIn } from '@/hooks/use-google-sign-in';
 
 export default function SignUpScreen() {
   const router = useRouter();
+  const { signInWithGoogle } = useAuth();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
+
+  const { isReady: isGoogleReady, promptAsync: promptGoogleSignIn } = useGoogleSignIn(
+    async (idToken) => {
+      setError(null);
+      setIsGoogleSubmitting(true);
+      try {
+        await signInWithGoogle(idToken);
+      } catch (err) {
+        setError(err instanceof ApiError ? err.message : 'Could not sign in with Google.');
+      } finally {
+        setIsGoogleSubmitting(false);
+      }
+    },
+    (message) => setError(message)
+  );
 
   const canSubmit = fullName.length > 0 && email.length > 0 && password.length > 0 && password === confirmPassword;
 
@@ -25,10 +44,7 @@ export default function SignUpScreen() {
     setError(null);
     setIsSubmitting(true);
     try {
-      // POST /api/v1/users/signup/ creates the account but does NOT log in yet — the backend
-      // emails a 6-digit code and requires POST /verify/ before a session exists. That's a real
-      // design decision on the backend's part (unverified emails can't log in), not something
-      // we're choosing to add — so the sign-up flow has to be two screens, not one.
+      
       await authApi.signup({ fullName, email, password });
       router.push({ pathname: '/verify-email', params: { email } });
     } catch (err) {
@@ -115,7 +131,13 @@ export default function SignUpScreen() {
               <View className="h-[1px] flex-1 bg-outline-variant" />
             </View>
 
-            <Button label="Google" variant="secondary" onPress={() => {}} />
+            <Button
+              label="Google"
+              variant="secondary"
+              onPress={() => promptGoogleSignIn()}
+              loading={isGoogleSubmitting}
+              disabled={!isGoogleReady}
+            />
 
             <Pressable onPress={() => router.back()} className="flex-row flex-wrap justify-center">
               <Text className="font-body-md text-body-md text-on-surface-variant">Already have an account? </Text>

@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 
-import { getCachedAccessToken } from '@/api/token-store';
+import { getCachedAccessToken, getCachedRefreshToken, setTokens } from '@/api/token-store';
 
 
 const ANDROID_URL = 'http://10.0.2.2:8000';
@@ -56,7 +56,44 @@ function extractErrorMessage(body: unknown, fallback: string): string {
 }
 
 
-export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+const REFRESH_PATH = '/api/v1/users/token/refresh-mobile/';
+
+// Access tokens live 60 minutes; refresh tokens live 2 days. Without this, every request
+// made after the access token expires would just 401 forever even though the refresh token
+// is still perfectly valid — which is exactly why sessions used to die after ~an hour instead
+// of lasting the full 2 days. Concurrent 401s share one in-flight refresh instead of each
+// firing their own (ROTATE_REFRESH_TOKENS means only the first refresh token is still valid).
+let refreshPromise: Promise<string | null> | null = null;
+
+async function refreshAccessToken(): Promise<string | null> {
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      const refreshToken = getCachedRefreshToken();
+      if (!refreshToken) return null;
+      try {
+        const response = await fetch(`${API_BASE_URL}${REFRESH_PATH}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({ refresh: refreshToken }),
+        });
+        if (!response.ok) return null;
+        const data = (await response.json()) as { access: string; refresh: string };
+        await setTokens(data.access, data.refresh);
+        return data.access;
+      } catch {
+        return null;
+      }
+    })();
+  }
+
+  try {
+    return await refreshPromise;
+  } finally {
+    refreshPromise = null;
+  }
+}
+
+export async function apiFetch<T>(path: string, init?: RequestInit, _isRetry = false): Promise<T> {
   const accessToken = getCachedAccessToken();
 
   const isFormData = typeof FormData !== 'undefined' && init?.body instanceof FormData;
@@ -70,12 +107,19 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
     },
   });
 
+  if (response.status === 401 && !_isRetry && path !== REFRESH_PATH) {
+    const newAccessToken = await refreshAccessToken();
+    if (newAccessToken) {
+      return apiFetch<T>(path, init, true);
+    }
+  }
+
   const text = await response.text();
   let body: unknown = null;
   try {
     body = text ? JSON.parse(text) : null;
   } catch {
-   
+
     throw new ApiError(response.status, text, `Unexpected response (${response.status}): ${text.slice(0, 200)}`);
   }
 

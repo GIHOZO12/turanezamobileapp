@@ -4,21 +4,22 @@
     "slug": "turaneza",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/turanezalogo.png",
+    "icon": "./assets/images/app-icon-mark.png",
     "scheme": "turaneza",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.ngewe.turaneza"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#2B3A4D",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.ngewe.turaneza"
+      "package": "com.ngewe.turaneza",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "static",
@@ -34,10 +35,17 @@
           "imageWidth": 76
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/android-icon-monochrome.png",
+          "color": "#005ea4"
+        }
+      ]
     ],
     "experiments": {
-      "typedRoutes": true,
+      "typedRoutes": true, 
       "reactCompiler": true
     },
     "extra": {

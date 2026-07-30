@@ -2,7 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { submitGroupApplication, type GroupApplicationPayload, type PickedFile } from '@/api/applications';
 import { ApiError } from '@/api/client';
@@ -44,6 +44,7 @@ function SectionLabel({ children }: { children: string }) {
 
 export default function GroupApplicationScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
   const [group, setGroup] = useState<InvestGroup | null>(null);
@@ -117,7 +118,10 @@ export default function GroupApplicationScreen() {
       </View>
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
-        <ScrollView contentContainerClassName="gap-xl px-margin-mobile pb-lg" keyboardShouldPersistTaps="handled">
+        <ScrollView
+          contentContainerClassName="gap-xl px-margin-mobile"
+          contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
+          keyboardShouldPersistTaps="handled">
           <View className="gap-md rounded-lg bg-surface-container-lowest p-md shadow-investment">
             <View className="gap-xs">
               <Text className="font-label-md text-label-md text-on-surface-variant">Full Name</Text>

@@ -2,7 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { fetchMyApplications, type GroupApplication } from '@/api/applications';
 import { fetchGroupDocuments, fetchInvestGroup, type GroupDocument, type InvestGroup } from '@/api/groups';
@@ -24,6 +24,7 @@ const DOCUMENT_ICONS: Record<GroupDocument['document_type'], keyof typeof Materi
 
 export default function GroupDetailScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
   const [group, setGroup] = useState<InvestGroup | null>(null);
@@ -84,7 +85,8 @@ export default function GroupDetailScreen() {
       ) : (
         <ScrollView
           className="flex-1"
-          contentContainerClassName="gap-xl px-margin-mobile py-md pb-lg"
+          contentContainerClassName="gap-xl px-margin-mobile py-md"
+          contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
           showsVerticalScrollIndicator={false}>
           {/* Group header */}
           <View className="gap-md rounded-lg bg-surface-container-lowest p-md shadow-investment">

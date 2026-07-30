@@ -2,7 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ApiError } from '@/api/client';
 import { fetchInvestGroup } from '@/api/groups';
@@ -14,6 +14,7 @@ const POLL_INTERVAL_MS = 4000;
 
 export default function GroupChatScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { id, name, recipient } = useLocalSearchParams<{ id: string; name?: string; recipient?: string }>();
   const isDirect = recipient != null;
   const { user } = useAuth();
@@ -104,7 +105,7 @@ export default function GroupChatScreen() {
         )}
       </View>
 
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
         {isLoading ? (
           <ActivityIndicator className="py-lg" color={colors.primary} />
         ) : (
@@ -151,7 +152,9 @@ export default function GroupChatScreen() {
           </Text>
         )}
 
-        <View className="flex-row items-center gap-3 border-t border-outline-variant/30 px-margin-mobile py-3">
+        <View
+          className="flex-row items-center gap-3 border-t border-outline-variant/30 px-margin-mobile pt-3"
+          style={{ paddingBottom: insets.bottom + 12 }}>
           <TextInput
             className="flex-1 rounded-lg border border-outline-variant bg-surface-container-low px-md py-3 font-body-md text-body-md text-on-surface"
             placeholder="Type a message..."

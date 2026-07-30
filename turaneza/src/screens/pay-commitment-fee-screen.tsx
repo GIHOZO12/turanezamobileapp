@@ -2,7 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { fetchGroupApplication, submitCommitmentFeeProof, type GroupApplication, type PickedFile } from '@/api/applications';
 import { ApiError } from '@/api/client';
@@ -49,6 +49,7 @@ function PaymentStepCard({
 
 export default function PayCommitmentFeeScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [application, setApplication] = useState<GroupApplication | null>(null);
   const [groupName, setGroupName] = useState<string | null>(null);
@@ -65,8 +66,7 @@ export default function PayCommitmentFeeScreen() {
       .then((data) => {
         setApplication(data);
         if (data.commitment_fee_proof) setIsSubmitted(true);
-        // Best-effort — the payment instructions still make sense without the group's name,
-        // it's just a nicer, more specific intro line when this succeeds.
+
         if (data.group != null) {
           fetchInvestGroup(data.group)
             .then((group) => setGroupName(group.name))
@@ -125,7 +125,8 @@ export default function PayCommitmentFeeScreen() {
       ) : (
         <ScrollView
           className="flex-1"
-          contentContainerClassName="gap-xl px-margin-mobile pb-lg"
+          contentContainerClassName="gap-xl px-margin-mobile"
+          contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
           showsVerticalScrollIndicator={false}>
           <View className="gap-sm pt-sm">
             <Text className="font-headline-editorial text-headline-editorial text-primary">Commitment Fee</Text>

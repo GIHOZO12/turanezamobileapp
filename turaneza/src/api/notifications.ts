@@ -27,3 +27,10 @@ export function markNotificationRead(id: number) {
 export function markAllNotificationsRead() {
   return apiFetch<{ message: string }>('/api/v1/notifications/notifications/mark-all-read/', { method: 'POST' });
 }
+
+export function registerDeviceToken(input: { token: string; platform: 'android' | 'ios' }) {
+  return apiFetch<{ message: string }>('/api/v1/notifications/device-tokens/', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}

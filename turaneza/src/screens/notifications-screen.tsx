@@ -51,12 +51,30 @@ export default function NotificationsScreen() {
   const hasUnread = notifications.some((n) => !n.is_read);
 
   function handlePress(notification: AppNotification) {
-    if (notification.is_read) return;
-    setNotifications((prev) => prev.map((n) => (n.id === notification.id ? { ...n, is_read: true } : n)));
-    markNotificationRead(notification.id).catch(() => {
-      // Best-effort — if this fails the row just stays visually read until next refresh, not
-      // worth surfacing an error over a mark-read call.
-    });
+    if (!notification.is_read) {
+      setNotifications((prev) => prev.map((n) => (n.id === notification.id ? { ...n, is_read: true } : n)));
+      markNotificationRead(notification.id).catch(() => {
+
+      });
+    }
+    navigateForNotification(notification);
+  }
+
+  function navigateForNotification(notification: AppNotification) {
+    const data = notification.data;
+    const groupId = data.group_id;
+    const senderId = data.sender_id;
+    const plotId = data.plot_id;
+
+
+    if (typeof groupId === 'number' && typeof senderId === 'number') {
+      router.push({ pathname: '/chat/[id]', params: { id: String(groupId), recipient: String(senderId) } });
+    } else if (typeof groupId === 'number') {
+      router.push({ pathname: '/group/[id]', params: { id: String(groupId) } });
+    } else if (typeof plotId === 'number') {
+      // No per-plot detail screen exists yet — the Plots tab is the closest available context.
+      router.push('/plots');
+    }
   }
 
   function handleMarkAllRead() {
