@@ -6,13 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import colors from '@/constants/colors';
 import { useAuth } from '@/contexts/auth-context';
 
-/**
- * Global floating "Ask TURANEZA" button — mounted once at the root layout (see _layout.tsx),
- * so it overlays every authenticated screen without each screen wiring it in individually.
- * Opens a real screen route (see ai-assistant-screen.tsx) rather than a Modal — Android's
- * Modal doesn't reliably inherit the app's keyboard-avoidance behavior, which left the text
- * input hidden behind the keyboard on physical devices.
- */
+
 export function AiAssistantFab() {
   const { isSignedIn } = useAuth();
   const insets = useSafeAreaInsets();

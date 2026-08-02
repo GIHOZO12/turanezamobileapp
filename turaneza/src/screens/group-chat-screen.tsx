@@ -9,12 +9,14 @@ import { fetchInvestGroup } from '@/api/groups';
 import { fetchGroupMessages, sendGroupMessage, type GroupMessage } from '@/api/messages';
 import colors from '@/constants/colors';
 import { useAuth } from '@/contexts/auth-context';
+import { useKeyboardHeight } from '@/hooks/use-keyboard-height';
 
 const POLL_INTERVAL_MS = 4000;
 
 export default function GroupChatScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const keyboardHeight = useKeyboardHeight();
   const { id, name, recipient } = useLocalSearchParams<{ id: string; name?: string; recipient?: string }>();
   const isDirect = recipient != null;
   const { user } = useAuth();
@@ -105,7 +107,10 @@ export default function GroupChatScreen() {
         )}
       </View>
 
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={Platform.OS === 'android' ? { paddingBottom: keyboardHeight > 0 ? keyboardHeight + 56 : 0 } : undefined}
+        className="flex-1">
         {isLoading ? (
           <ActivityIndicator className="py-lg" color={colors.primary} />
         ) : (
@@ -154,7 +159,7 @@ export default function GroupChatScreen() {
 
         <View
           className="flex-row items-center gap-3 border-t border-outline-variant/30 px-margin-mobile pt-3"
-          style={{ paddingBottom: insets.bottom + 12 }}>
+          style={{ paddingBottom: keyboardHeight > 0 ? 12 : insets.bottom + 12 }}>
           <TextInput
             className="flex-1 rounded-lg border border-outline-variant bg-surface-container-low px-md py-3 font-body-md text-body-md text-on-surface"
             placeholder="Type a message..."

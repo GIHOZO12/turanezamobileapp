@@ -145,7 +145,7 @@ export default function SubmitPlotScreen() {
               </View>
 
               <View className="gap-xs">
-                <Text className="font-label-md text-label-md text-on-surface-variant">Plot Photo (optional)</Text>
+                <Text className="font-label-md text-label-md text-on-surface-variant">Plot Photo</Text>
                 <FilePickerField
                   value={plotImage}
                   onChange={setPlotImage}
