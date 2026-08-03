@@ -55,7 +55,7 @@ export default function ProjectDetailScreen() {
 
     fetchProjectDesigns(id)
       .then((data) => {
-        const galleryUrls = data.results
+        const galleryUrls = data
           .filter((asset) => asset.media_type === 'image')
           .map((asset) => resolveMediaUrl(asset.image))
           .filter((url): url is string => url != null);

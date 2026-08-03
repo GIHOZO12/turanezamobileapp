@@ -43,10 +43,16 @@
           "icon": "./assets/images/android-icon-monochrome.png",
           "color": "#005ea4"
         }
+      ],
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.747111378838-gl8hjfr88euvfqt2bf191rss5i26apm2"
+        }
       ]
     ],
     "experiments": {
-      "typedRoutes": true, 
+      "typedRoutes": true,
       "reactCompiler": true
     },
     "extra": {

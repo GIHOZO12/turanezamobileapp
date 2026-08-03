@@ -42,6 +42,18 @@ export function fetchProject(id: string | number) {
 }
 
 
-export function fetchProjectDesigns(projectId: string | number) {
-  return apiFetch<PaginatedResponse<ProjectDesignAsset>>(`/api/v1/projects/designs/?project=${projectId}`);
+/**
+ * PAGE_SIZE is a global 6 (urban_evolution/settings.py) with no page_size override exposed,
+ * so a project with more than 6 design assets would silently lose the rest without following
+ * every `next` link — same pagination trap fetchGroupMessages already had to work around.
+ */
+export async function fetchProjectDesigns(projectId: string | number): Promise<ProjectDesignAsset[]> {
+  const all: ProjectDesignAsset[] = [];
+  let path: string | null = `/api/v1/projects/designs/?project=${projectId}`;
+  while (path) {
+    const page: PaginatedResponse<ProjectDesignAsset> = await apiFetch<PaginatedResponse<ProjectDesignAsset>>(path);
+    all.push(...page.results);
+    path = page.next ? page.next.replace(/^https?:\/\/[^/]+/, '') : null;
+  }
+  return all;
 }

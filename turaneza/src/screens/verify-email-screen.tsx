@@ -25,9 +25,7 @@ export default function VerifyEmailScreen() {
     setError(null);
     setIsSubmitting(true);
     try {
-      // POST /api/v1/users/verify/ checks the code and, if correct, calls Django's login()
-      // server-side — the session cookie already exists by the time this resolves, so
-      // completeSession() just has to fetch /me/ to populate the app's auth state from it.
+   
       await authApi.verifyEmail({ email, code });
       await completeSession();
     } catch (err) {

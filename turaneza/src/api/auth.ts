@@ -71,6 +71,18 @@ export function requestPasswordReset(input: { email: string }) {
   });
 }
 
+export function confirmPasswordReset(input: { email: string; code: string; password: string; confirmPassword: string }) {
+  return apiFetch<{ message: string }>('/api/v1/users/password-reset/confirm/', {
+    method: 'POST',
+    body: JSON.stringify({
+      email: input.email,
+      code: input.code,
+      password: input.password,
+      confirm_password: input.confirmPassword,
+    }),
+  });
+}
+
 
 export function fetchMe() {
   return apiFetch<UserMe>('/api/v1/users/me/');

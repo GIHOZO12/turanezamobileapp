@@ -24,12 +24,7 @@ export function getInitials(fullName: string): string {
   return (first + last).toUpperCase() || '?';
 }
 
-/**
- * Collapses double spaces / stray whitespace in freeform text fields (plot descriptions,
- * proposed_house_description, etc). This is real seeded/user-submitted data with typos like
- * "hotel with 40  rooms" — collapsing runs of whitespace to a single space is a display-only
- * cleanup, not a data correction, so it doesn't touch what's actually stored.
- */
+
 export function cleanText(text: string): string {
   return text.trim().replace(/\s+/g, ' ');
 }
