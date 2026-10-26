@@ -59,18 +59,20 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}>
         <View className="gap-md pt-sm">
           <Text className="font-display-lg text-display-lg text-on-background">
-            Invest in{'\n'}
-            <Text className="text-primary">Rwanda&apos;s Future</Text>
+
+            <Text className="text-primary">Co-invest in modern multi-family and community Housing
+</Text>
           </Text>
           <Text className="font-body-lg text-body-lg text-on-surface-variant">
-            Join communal investment groups to acquire prime real estate and plots across Rwanda. Secure your wealth
-            through transparent, institutional-grade land ownership.
+Register your plot on TURANEZA. We’ll help you find co-investors to build vertically, with each participant owning an apartment.
+
+
           </Text>
           <View className="flex-row gap-md py-sm pt-xs">
             <Button label="Browse All Plots" onPress={() => router.push('/plots')} className="flex-1" />
             <Button
               label="Submit a Plot"
-              variant="secondary"
+              variant="primary"
               onPress={() => router.push('/submit-plot')}
               className="flex-1"
             />
@@ -103,7 +105,9 @@ export default function HomeScreen() {
           <View className="gap-1">
             <Text className="font-headline-lg text-headline-lg text-on-background">Featured Projects</Text>
             <Text className="font-body-md text-body-md text-on-surface-variant">
-              Hand-picked developments currently open for co-investment.
+Explore Current Developments.
+
+
             </Text>
           </View>
           <Pressable onPress={() => router.push('/projects')} className="flex-row items-center gap-2 self-start">
@@ -141,16 +145,21 @@ export default function HomeScreen() {
         <View className=" p-lg items-center gap-md rounded-lg bg-primary ">
           <Text className="text-center font-headline-lg text-headline-lg text-on-primary">Why Choose Turaneza?</Text>
           <Text className="text-center font-body-md text-body-md text-primary-fixed">
-            We are your trusted partner for secure, transparent, and profitable land co-investment in Rwanda.
+TURANEZA App, developed by Urban Evolution Group Ltd, connects landowners with people who want to live in the same location. They form groups and pool their resources to build housing with several apartments, where members can own or rent a unit.
+Urban Evolution Group Ltd manages the whole building process from designing the homes to handing them over.
+ Investors form a committee to assure smooth collaboration, accountability and transparency of use of funds. 
+This approach makes housing more affordable, uses land efficiently, and helps build sustainable communities in the city.
+
+
           </Text>
-          <View className="w-full flex-row gap-md">
+          {/* <View className="w-full flex-row gap-md">
             {TRUST_ITEMS.map((item) => (
               <View key={item.label} className="flex-1 items-center gap-2 rounded-lg bg-on-primary/10 px-2 py-3">
                 <MaterialIcons name={item.icon} size={20} color={colors['secondary-fixed']} />
                 <Text className="text-center font-label-md text-label-md text-on-primary">{item.label}</Text>
               </View>
             ))}
-          </View>
+          </View> */}
         </View>
       </ScrollView>
     </View>

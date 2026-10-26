@@ -1,7 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
-import { Alert, Pressable, Text, useWindowDimensions, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -60,6 +60,11 @@ export function SideDrawer() {
     router.push(path);
   }
 
+  function goToResource(slug: 'help-center' | 'quiz' | 'legal' | 'special-videos' | 'articles' | 'contact') {
+    close();
+    router.push({ pathname: '/resources/[slug]', params: { slug } });
+  }
+
   function handleSignOut() {
     close();
     Alert.alert('Log Out', 'Are you sure you want to log out?', [
@@ -97,11 +102,18 @@ export function SideDrawer() {
 
           <View className="h-[1px] bg-outline-variant/30" />
 
-          <View className="gap-1 p-sm">
-            <DrawerLink icon="person" label="Account Info" onPress={() => go('/account-info')} />
-            <DrawerLink icon="add-business" label="Submit a Plot" onPress={() => go('/submit-plot')} />
-            <DrawerLink icon="help" label="Help Center" onPress={close} />
-          </View>
+          <ScrollView className="max-h-[60%]" showsVerticalScrollIndicator={false}>
+            <View className="gap-1 p-sm">
+              <DrawerLink icon="person" label="Account Info" onPress={() => go('/account-info')} />
+              <DrawerLink icon="add-business" label="Submit a Plot" onPress={() => go('/submit-plot')} />
+              <DrawerLink icon="help" label="Help Center" onPress={() => goToResource('help-center')} />
+              <DrawerLink icon="quiz" label="Quiz" onPress={() => goToResource('quiz')} />
+              <DrawerLink icon="gavel" label="Legal" onPress={() => goToResource('legal')} />
+              <DrawerLink icon="play-circle-outline" label="Special Videos" onPress={() => goToResource('special-videos')} />
+              <DrawerLink icon="article" label="Articles" onPress={() => goToResource('articles')} />
+              <DrawerLink icon="support-agent" label="Contact Us" onPress={() => goToResource('contact')} />
+            </View>
+          </ScrollView>
 
           <View className="flex-1" />
 

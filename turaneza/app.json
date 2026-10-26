@@ -49,7 +49,11 @@
         {
           "iosUrlScheme": "com.googleusercontent.apps.747111378838-gl8hjfr88euvfqt2bf191rss5i26apm2"
         }
-      ]
+      ],
+      "expo-image",
+      "expo-status-bar",
+      "expo-web-browser",
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -63,7 +67,7 @@
     },
     "owner": "ngewe",
     "runtimeVersion": {
-      "policy": "appVersion"
+      "policy": "fingerprint"
     },
     "updates": {
       "url": "https://u.expo.dev/436e97a3-5430-4934-9e62-a63188f0bed1"

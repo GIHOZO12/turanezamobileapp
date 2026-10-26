@@ -51,6 +51,7 @@ function RootNavigator() {
         <Stack.Screen name="account-info" />
         <Stack.Screen name="notifications" />
         <Stack.Screen name="assistant" />
+        <Stack.Screen name="resources/[slug]" />
       </Stack.Protected>
     </Stack>
   );

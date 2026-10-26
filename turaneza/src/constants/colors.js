@@ -60,7 +60,7 @@ module.exports = {
   'surface-tint': '#0060a8',
   'surface-variant': '#dce3f0',
 
-  // Status colors used across property/investment cards (from DESIGN.md "Components")
+
   success: '#34D399',
   warning: '#FBBF24',
 };

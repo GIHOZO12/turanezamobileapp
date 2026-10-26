@@ -1,7 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { fetchMyApplications, type GroupApplication } from '@/api/applications';
@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { ProjectCard } from '@/components/ui/project-card';
 import colors from '@/constants/colors';
 import { useAuth } from '@/contexts/auth-context';
+import { downloadAndShareFile } from '@/lib/download';
 import { cleanText, formatRwf } from '@/lib/format';
 import { computeMembershipStatus, indexApplicationsByGroup } from '@/lib/membership';
 
@@ -33,6 +34,19 @@ export default function GroupDetailScreen() {
   const [groupProjects, setGroupProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [downloadingId, setDownloadingId] = useState<number | null>(null);
+
+  async function downloadDocument(doc: GroupDocument) {
+    if (downloadingId !== null) return;
+    setDownloadingId(doc.id);
+    try {
+      await downloadAndShareFile(doc.file, doc.title || 'Group document');
+    } catch (err) {
+      Alert.alert('Download failed', err instanceof Error ? err.message : 'Could not download this document. Try again.');
+    } finally {
+      setDownloadingId(null);
+    }
+  }
 
   useEffect(() => {
     setIsLoading(true);
@@ -265,11 +279,18 @@ export default function GroupDetailScreen() {
                 No documents shared for this group yet.
               </Text>
             ) : (
-              documents.map((doc) => (
+              documents.map((doc) => {
+                const isAvailable = Boolean(doc.file);
+                const isDownloading = downloadingId === doc.id;
+                return (
                 // A subtle background tint separates each row instead of a border line.
-                <View
+                <Pressable
                   key={doc.id}
-                  className="flex-row items-center justify-between rounded-lg bg-surface-container-low p-3">
+                  accessibilityRole="button"
+                  accessibilityLabel={isAvailable ? `Download ${doc.title || 'document'}` : `${doc.title || 'Document'}, file not available`}
+                  disabled={!isAvailable || downloadingId !== null}
+                  onPress={() => downloadDocument(doc)}
+                  className="flex-row items-center justify-between rounded-lg bg-surface-container-low p-3 active:bg-surface-container-high">
                   <View className="flex-1 flex-row items-center gap-3 pr-2">
                     <View className="h-10 w-10 items-center justify-center rounded bg-primary/10">
                       <MaterialIcons name={DOCUMENT_ICONS[doc.document_type]} size={20} color={colors.primary} />
@@ -279,13 +300,24 @@ export default function GroupDetailScreen() {
                         {doc.title || 'Untitled document'}
                       </Text>
                       <Text className="text-[12px] text-on-surface-variant">
-                        {new Date(doc.uploaded_at).toLocaleDateString()}
+                        {isAvailable
+                          ? new Date(doc.uploaded_at).toLocaleDateString()
+                          : 'File not available yet'}
                       </Text>
                     </View>
                   </View>
-                  <MaterialIcons name="download" size={20} color={colors['outline-variant']} />
-                </View>
-              ))
+                  {isDownloading ? (
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  ) : isAvailable ? (
+                    <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
+                      <MaterialIcons name="download" size={20} color={colors.primary} />
+                    </View>
+                  ) : (
+                    <MaterialIcons name="file-download-off" size={20} color={colors['outline-variant']} />
+                  )}
+                </Pressable>
+                );
+              })
             )}
           </View>
         </ScrollView>

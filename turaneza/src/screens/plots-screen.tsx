@@ -73,7 +73,9 @@ export default function PlotsScreen() {
           <View className="flex-1 gap-1">
             <Text className="font-label-sm uppercase tracking-widest text-label-sm text-primary">Available Plots</Text>
             <Text className="font-headline-lg text-headline-lg text-on-background">
-              Plots approved and ready for collaborators
+Approved Plots ready for developments. 
+
+
             </Text>
             <Text className="font-body-md text-body-md text-on-surface-variant">
               Every plot here has been verified by our team. Request to join one to help fund and build its house.
