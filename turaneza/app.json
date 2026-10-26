@@ -2,7 +2,7 @@
   "expo": {
     "name": "turaneza",
     "slug": "turaneza",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/app-icon-mark.png",
     "scheme": "turaneza",
@@ -67,7 +67,7 @@
     },
     "owner": "ngewe",
     "runtimeVersion": {
-      "policy": "fingerprint"
+      "policy": "appVersion"
     },
     "updates": {
       "url": "https://u.expo.dev/436e97a3-5430-4934-9e62-a63188f0bed1"
