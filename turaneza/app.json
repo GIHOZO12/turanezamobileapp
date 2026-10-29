@@ -2,7 +2,7 @@
   "expo": {
     "name": "turaneza",
     "slug": "turaneza",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/images/app-icon-mark.png",
     "scheme": "turaneza",
@@ -32,7 +32,7 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#208AEF",
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/logo.png",
           "imageWidth": 76
         }
       ],

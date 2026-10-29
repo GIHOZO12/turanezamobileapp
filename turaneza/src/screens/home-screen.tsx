@@ -60,7 +60,7 @@ export default function HomeScreen() {
         <View className="gap-md pt-sm">
           <Text className="font-display-lg text-display-lg text-on-background">
 
-            <Text className="text-primary">Co-invest in modern multi-family and community Housing
+            <Text className="text-primary text-xl">Co-invest in modern multi-family and community Housing
 </Text>
           </Text>
           <Text className="font-body-lg text-body-lg text-on-surface-variant">

@@ -32,7 +32,7 @@ export function AnimatedSplashOverlay() {
     },
   });
 
-  const image = <Image style={styles.image} source={require('@/assets/images/expo-logo.png')} />;
+  const image = <Image style={styles.image} source={require('@/assets/images/logo.png')} />;
 
   return animate ? (
     <Animated.View
@@ -61,7 +61,8 @@ export function AnimatedSplashOverlay() {
 const styles = StyleSheet.create({
   image: {
     width: 76,
-    height: 71,
+    // 172x139 source - height preserves the logo aspect ratio so it is not squashed
+    height: 61,
   },
   splashOverlay: {
     ...StyleSheet.absoluteFill,

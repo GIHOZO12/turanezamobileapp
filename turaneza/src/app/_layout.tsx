@@ -15,7 +15,7 @@ import { useColorScheme } from 'react-native';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { PushNotificationRegistrar } from '@/components/push-notification-registrar';
-import { AiAssistantFab } from '@/components/ui/ai-assistant-fab';
+// import { AiAssistantFab } from '@/components/ui/ai-assistant-fab';
 import { SideDrawer } from '@/components/ui/side-drawer';
 import { AuthProvider, useAuth } from '@/contexts/auth-context';
 import { DrawerProvider } from '@/contexts/drawer-context';
@@ -50,7 +50,7 @@ function RootNavigator() {
         <Stack.Screen name="submit-plot" />
         <Stack.Screen name="account-info" />
         <Stack.Screen name="notifications" />
-        <Stack.Screen name="assistant" />
+        {/* <Stack.Screen name="assistant" /> */}
         <Stack.Screen name="resources/[slug]" />
       </Stack.Protected>
     </Stack>
@@ -80,7 +80,7 @@ export default function RootLayout() {
         <DrawerProvider>
           <RootNavigator />
           <SideDrawer />
-          <AiAssistantFab />
+          {/* <AiAssistantFab /> */}
           <PushNotificationRegistrar />
         </DrawerProvider>
       </AuthProvider>
