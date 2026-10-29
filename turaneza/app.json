@@ -2,9 +2,9 @@
   "expo": {
     "name": "turaneza",
     "slug": "turaneza",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "orientation": "portrait",
-    "icon": "./assets/images/app-icon-mark.png",
+    "icon": "./assets/images/app-icon.png",
     "scheme": "turaneza",
     "userInterfaceStyle": "automatic",
     "ios": {
@@ -13,8 +13,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#2B3A4D",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundColor": "#07283b",
+        "foregroundImage": "./assets/images/android-adaptive-foreground.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
