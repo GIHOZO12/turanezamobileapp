@@ -12,11 +12,27 @@ type AuthContextValue = {
   login: (email: string, password: string) => Promise<void>;
   /** Exchanges a Google ID token (from the native Google Sign-In flow) for our own JWTs. */
   signInWithGoogle: (idToken: string) => Promise<void>;
-  /** Call after verify-email succeeds — the backend has already created a session by then. */
-  completeSession: () => Promise<void>;
+  /**
+   * Call after verify-email succeeds. Verification only logs the user into a Django
+   * *session*, but every other endpoint authenticates with a JWT Bearer token — so we
+   * mint one here from the password stashed at signup. Returns 'needs-sign-in' when
+   * that password is gone (app restarted between signup and verification).
+   */
+  completeSession: (email: string) => Promise<'signed-in' | 'needs-sign-in'>;
   signOut: () => Promise<void>;
 };
 
+
+/**
+ * Kept in memory only — never persisted, never put in route params — so the
+ * verify-email step can exchange it for JWTs. Cleared as soon as it is used.
+ */
+let pendingSignupPassword: string | null = null;
+
+/** Called by the sign-up screen just before it navigates to verify-email. */
+export function stashSignupPassword(password: string) {
+  pendingSignupPassword = password;
+}
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -67,10 +83,18 @@ export function AuthProvider({ children }: PropsWithChildren) {
         setUser(me);
         setIsSignedIn(true);
       },
-      completeSession: async () => {
+      completeSession: async (email) => {
+        const password = pendingSignupPassword;
+        pendingSignupPassword = null;
+        if (!password) return 'needs-sign-in';
+
+        const tokens = await authApi.fetchMobileToken({ email, password });
+        await setTokens(tokens.access, tokens.refresh);
+
         const me = await authApi.fetchMe();
         setUser(me);
         setIsSignedIn(true);
+        return 'signed-in';
       },
       signOut: async () => {
         
@@ -80,6 +104,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
           // Ignored — see above.
         }
         await clearTokens();
+        pendingSignupPassword = null;
         setUser(null);
         setIsSignedIn(false);
       },

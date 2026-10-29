@@ -9,7 +9,7 @@ import { ApiError } from '@/api/client';
 import { Button } from '@/components/ui/button';
 import { TextField } from '@/components/ui/text-field';
 import colors from '@/constants/colors';
-import { useAuth } from '@/contexts/auth-context';
+import { stashSignupPassword, useAuth } from '@/contexts/auth-context';
 import { useGoogleSignIn } from '@/hooks/use-google-sign-in';
 
 export default function SignUpScreen() {
@@ -46,6 +46,8 @@ export default function SignUpScreen() {
     try {
       
       await authApi.signup({ fullName, email, password });
+      // Verification needs this to mint JWTs. Memory only, never a route param.
+      stashSignupPassword(password);
       router.push({ pathname: '/verify-email', params: { email } });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not reach the server. Check your connection.');

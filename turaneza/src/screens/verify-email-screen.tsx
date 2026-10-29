@@ -27,7 +27,9 @@ export default function VerifyEmailScreen() {
     try {
    
       await authApi.verifyEmail({ email, code });
-      await completeSession();
+      if ((await completeSession(email)) === 'needs-sign-in') {
+        router.replace('/sign-in');
+      }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not reach the server. Check your connection.');
     } finally {
